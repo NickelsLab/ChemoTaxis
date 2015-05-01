@@ -1,0 +1,24 @@
+include "ecoli.inc"
+
+resolution 0.001 # the size of a pixel in Stage's (in meters) underlying raytrace model
+interval_sim 10 # milliseconds per update step
+interval_real 10 # real-time milliseconds per update step
+
+# GUI options
+gui_disable 0
+gui_interval 10
+gui_menu_interval 20
+
+
+window
+(
+size [700 700] # window size in pixels
+scale 300 # initial scale
+)
+
+ecoli
+(
+name "ecoli"
+pose [-0.050 -0.050 0.000 90.000]
+)
+
