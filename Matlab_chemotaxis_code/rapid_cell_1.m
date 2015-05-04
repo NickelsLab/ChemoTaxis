@@ -27,7 +27,8 @@ function [m,mb,cheYp,A] = rapid_cell_1(S,m,dt)
     K_s = 0.45; %just a scaling coefficient
     
     %%%Receptor free energy (Table 2, p. 4)
-    F = n*(eps_val(m)+log((1+S/K_off)/(1+S/K_on)))+ns*(eps_val(m)+log((1+S/Ks_off)/(1+S/Ks_on)));
+    F = n*(eps_val(m)+log((1+S/K_off)/(1+S/K_on))) + ...
+       ns*(eps_val(m)+log((1+S/Ks_off)/(1+S/Ks_on)));
 
     %F = n*(eps_val(m)+log((1+S/K_off)/(1+S/K_on)))+ns*(eps_val(m)+log((1+0.01*S/Ks_off)/(1+0.01*S/Ks_on)));
 
