@@ -1,24 +1,20 @@
 include "ecoli.inc"
 
-resolution 0.001 # the size of a pixel in Stage's (in meters) underlying raytrace model
-interval_sim 10 # milliseconds per update step
-interval_real 10 # real-time milliseconds per update step
+resolution 1 # the size of a pixel in Stage's (in meters/microns) underlying raytrace model
 
-# GUI options
-gui_disable 0
-gui_interval 10
-gui_menu_interval 20
-
+interval_sim 1 # milliseconds per update step
 
 window
 (
 size [700 700] # window size in pixels
-scale 300 # initial scale
+scale 3 # initial scale
 )
 
 ecoli
 (
 name "ecoli"
-pose [-0.050 -0.050 0.000 90.000]
+pose [-23.640 28.360 0.000 80.000]
+# pose [-73.640 28.360 0.000 80.000] # Nguyen uses this?
+# pose [0 0 0 0]
 )
 
