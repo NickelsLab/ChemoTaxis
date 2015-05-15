@@ -9,7 +9,8 @@ function main_program()
     dir = 'simulation_scaled_robot6';
     mkdir(dir)
     
-    factor = 10^(-2);
+    factor = 10^(0); % scaling factor (micro to ??m)
+    %factor = 10^(-2); % scaling factor (micro to ??m)
     
     %parameters for Green's function (concentration)
     Max = 400;
@@ -24,8 +25,8 @@ function main_program()
     N_IB = 2;   %boundary points/particle
 
     %p contains boundary points on particles (size: N_IB*N_cell by 2)
-    p=[-18.4089    7.0912;
-      -17.9069    9.0272]*4*factor;
+    p=[-18.4089    7.0912;                    % centroid
+      -17.9069    9.0272]*4*factor;           % nose
    
     total_time_steps = 80000;
     N_frame =  20; %number of frames to be printed out

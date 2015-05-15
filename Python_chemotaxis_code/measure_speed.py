@@ -17,11 +17,11 @@ from playercpp import *
 
 if __name__ == "__main__":
 
-	fig = plt.figure(1,figsize=(4,4))
-	ax = fig.add_subplot(111)
-	fig.show()
-	xpos = np.array([])
-	ypos = np.array([])
+#	fig = plt.figure(1,figsize=(4,4))
+#	ax = fig.add_subplot(111)
+#	fig.show()
+#	xpos = np.array([])
+#	ypos = np.array([])
 
 	robot = PlayerClient("localhost")
 	pp = Position2dProxy(robot,0)
@@ -31,65 +31,76 @@ if __name__ == "__main__":
 
 	#pp.SetSpeed(0.0,900*math.pi/180.0) # spin
 	pp.SetSpeed(10.0,0*math.pi/180.0) # move forward 
+	print 'started'
 
 	pos_x = pp.GetXPos()
 	pos_y = pp.GetYPos()
 	pos_yaw = pp.GetYaw()
 	pos_t = pp.GetDataTime()
-	robot.Read()	 # read from the proxies
-	print 'robot went %.3f micron and %f rad (%d deg) in %.3f ms' %\
+	robot.Read()	 # read from the proxies (ADVANCE TIME 1 DELTA)
+	print 'robot went %.3f meter and %f rad (%d deg) in %.3f ms' %\
 			(math.sqrt((pp.GetXPos()-pos_x)**2+(pp.GetYPos()-pos_y)**2),\
 			(pp.GetYaw()-pos_yaw),\
 			180/math.pi*(pp.GetYaw()-pos_yaw),\
 			1e3*(pp.GetDataTime()-pos_t))
+	print 'speed = %.2f m/s in time %.2f ms' % ( pp.GetXSpeed(),1000*pp.GetElapsedTime())
+	print '%.0f ms' % (1e3*(pp.GetDataTime()-pos_t))
 
 	pos_x = pp.GetXPos()
 	pos_y = pp.GetYPos()
 	pos_yaw = pp.GetYaw()
 	pos_t = pp.GetDataTime()
-	robot.Read()	 # read from the proxies
-	print 'robot went %.3f micron and %f rad (%d deg) in %.3f ms' %\
+	robot.Read()	 # read from the proxies (ADVANCE TIME 1 DELTA)
+	print 'robot went %.3f meter and %f rad (%d deg) in %.3f ms' %\
 			(math.sqrt((pp.GetXPos()-pos_x)**2+(pp.GetYPos()-pos_y)**2),\
 			(pp.GetYaw()-pos_yaw),\
 			180/math.pi*(pp.GetYaw()-pos_yaw),\
 			1e3*(pp.GetDataTime()-pos_t))
+	print 'speed = %.2f m/s in time %.2f ms' % ( pp.GetXSpeed(),1000*pp.GetElapsedTime())
+	print '%.0f ms' % (1e3*(pp.GetDataTime()-pos_t))
 
 	pos_x = pp.GetXPos()
 	pos_y = pp.GetYPos()
 	pos_t = pp.GetDataTime()
 	pos_yaw = pp.GetYaw()
-	robot.Read()	 # read from the proxies
-	print 'robot went %.3f micron and %f rad (%d deg) in %.3f ms' %\
+	time.sleep(5)
+	robot.Read()	 # read from the proxies (ADVANCE TIME 1 DELTA)
+	print 'robot went %.3f meter and %f rad (%d deg) in %.3f ms' %\
 			(math.sqrt((pp.GetXPos()-pos_x)**2+(pp.GetYPos()-pos_y)**2),\
 			(pp.GetYaw()-pos_yaw),\
 			180/math.pi*(pp.GetYaw()-pos_yaw),\
 			1e3*(pp.GetDataTime()-pos_t))
+	print 'speed = %.2f m/s in time %.2f ms' % ( pp.GetXSpeed(),1000*pp.GetElapsedTime())
+	print '%.0f ms' % (1e3*(pp.GetDataTime()-pos_t))
 
 
 	pos_x = pp.GetXPos()
 	pos_y = pp.GetYPos()
 	pos_t = pp.GetDataTime()
 	pos_yaw = pp.GetYaw()
-	robot.Read()	 # read from the proxies
-	print 'robot went %.3f micron and %f rad (%d deg) in %.3f ms' %\
+	robot.Read()	 # read from the proxies (ADVANCE TIME 1 DELTA)
+	print 'robot went %.3f meter and %f rad (%d deg) in %.3f ms' %\
 			(math.sqrt((pp.GetXPos()-pos_x)**2+(pp.GetYPos()-pos_y)**2),\
 			(pp.GetYaw()-pos_yaw),\
 			180/math.pi*(pp.GetYaw()-pos_yaw),\
 			1e3*(pp.GetDataTime()-pos_t))
+	print 'speed = %.2f m/s in time %.2f ms' % ( pp.GetXSpeed(),1000*pp.GetElapsedTime())
+	print '%.0f ms' % (1e3*(pp.GetDataTime()-pos_t))
 
 
-	for i in range(10):
-		robot.Read()	 # read from the proxies
-		xpos = np.append(xpos,pp.GetXPos())
-		ypos = np.append(ypos,pp.GetYPos())
-		plt.plot(xpos,ypos,'o-')
-		plt.ylim((-100,100))
-		plt.xlim((-100,100))
-		plt.draw()
-		plt.cla()
-		print "robot at %f,%f\n" % (pp.GetXPos(),pp.GetYPos())
-
+#	for i in range(10):
+#		robot.Read()	 # read from the proxies
+#		xpos = np.append(xpos,pp.GetXPos())
+#		ypos = np.append(ypos,pp.GetYPos())
+#		plt.plot(xpos,ypos,'o-')
+#		plt.ylim((-100,100))
+#		plt.xlim((-100,100))
+#		plt.draw()
+#		plt.cla()
+#		print "robot at %f,%f\n" % (pp.GetXPos(),pp.GetYPos())
+#
 	pp.SetSpeed(0.0,0.0) # move forward at 1.0 m/s, 0 rad/s
+	print 'stopped'
 
 	#robot.Stop()
 	del sp

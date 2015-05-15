@@ -3,7 +3,9 @@ function main_program()
 
 tic
     %delete *.png
-    close all;clear all; clc
+    close all;
+    % clear all; 
+    clc
     fsize = 24;
     dir = 'simulation_robot';
     mkdir(dir)
@@ -64,7 +66,8 @@ tic
         %When it's time, save a frame with current cell positions.
         if(mod(i-1,N_step) == 0) 
             screen_size = get(0, 'ScreenSize');
-            fig2=figure('Visible','off');
+            %fig2=figure('Visible','off');
+            fig2=figure('Visible','on');
             set(fig2, 'Position', [0 0 screen_size(3) screen_size(4) ] );
             axes('FontSize',fsize)
             set(fig2,'PaperPositionMode','auto')

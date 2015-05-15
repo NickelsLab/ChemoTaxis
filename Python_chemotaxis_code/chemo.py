@@ -7,6 +7,8 @@
 # Compare methylation state from two points, run or tumble
 # Tim Davison Feb 2015
 
+# Working on scaling - using 1uM = 1M (x10^6) 
+
 # to run player server - "player PetriDish.cfg" in one window
 # to run controller - "python chemo.py" in another window
 
@@ -14,6 +16,8 @@ import math
 import random
 import time
 import datetime
+import matplotlib.pyplot as plt
+import numpy as np
 
 import sys, os
 # this should be whereever "playercpp.py" is.  
@@ -22,43 +26,32 @@ sys.path.append('/usr/local/lib/python2.7/site-packages/')
 sys.path.append('/usr/local/lib64/python2.7/site-packages/')
 from playercpp import *
 
+
+# from http://stackoverflow.com/questions/273192/in-python-check-if-a-directory-exists-and-create-it-if-necessary
+# 
+def ensure_dir(f):
+	if not os.path.exists(f):
+		os.makedirs(f)
+
 #note D is diffusion rate
 # Xs,Ys = center of chemical plume
 # Xc,Yc = location of sample
-def green_gradient( Max, Xs, Ys, D, Xc, Yc, t ):
+def Green_gradient( Max, Xs, Ys, D, Xc, Yc, t ):
 	r2 = (Xc - Xs)**2 + (Yc - Ys)**2
 	G = Max*math.exp(-r2/(4*D*t))/(4*math.pi*D*t)
 	return G
 
-
-def run(speed, dt):
-	#print 'state,running,speed,',speed,',cm/s,duration,',1000*dt,',ms,',
-	print >>logfile, 'state,run,',
-	pp.SetSpeed(speed, 0)
-	#robot.Read()
-	#time.sleep(dt)
-	#pp.SetSpeed(0,0)
-
-def tumble(turnrate,dt):
-	#print 'state,tumbling,rate,', turnrate,'rad/s, duration,',1000*dt,'ms, ',
-	print >>logfile, 'state,tumble,',
-	pp.SetSpeed(0,turnrate)
-	#robot.Read()
-# time.sleep(dt)
-	#pp.SetSpeed(0,0)
-
-def nose_pos():
-	nose_dist = 0.08 # dist from centroid to nose
-	robot.Read()
-	x = pp.GetXPos() # position of (centroid of) the robot
-	y = pp.GetYPos()
-	yaw = pp.GetYaw()
-
-	#this calculates the position of the front of the bot (the nose)
-	nosex = x + nose_dist*math.cos(yaw)
-	nosey = y + nose_dist*math.sin(yaw)
-	#print 'Xpos, %0.2f, Ypos, %0.2f, ' % (nosex, nosey),
-	return nosex, nosey
+# Plots the gradient function 
+def draw_Green_gradient(Max,Xs,Ys,D,size_grad,t,mag,factor):
+	scale = 0.5*factor;
+	grid = np.arange(-mag*size_grad,mag*size_grad,scale)
+	X,Y = np.meshgrid(grid,grid)
+	r2=(X-Xs)**2+(Y-Ys)**2
+	G=Max*np.exp(-r2/(4*D*t))/(4*math.pi*D*t)
+	plt.contour(X,Y,G,linewidths=2)
+	plt.ylim((-mag*size_grad,mag*size_grad))
+	plt.xlim((-mag*size_grad,mag*size_grad))
+	plt.draw()
 
 
 def eps_val(m):
@@ -86,9 +79,9 @@ def rapidcell(S, m, dt):
 	K_on = 12e-3
 	K_off = 1.7e-3
 	Ks_on = 1e6
-	Ks_off = 100
-	n = 6
-	ns = 12
+	Ks_off = 100.0
+	n = 6.0
+	ns = 12.0
 	cheR = 0.16
 	cheB = 0.28
 	mb0 = 0.65
@@ -98,40 +91,73 @@ def rapidcell(S, m, dt):
 	cheYt = 9.7
 
 #After Eq(7) pg. 3, Eq 8, p. 4
-	K_y = 100
-	K_z = 30
+	K_y = 100.0
+	K_z = 30.0
 	G_y = 0.1
 	K_s = 0.45
 #Receptor free energy
 	f = n*(eps_val(m) + math.log((1+S/K_off)/(1+S/K_on))) +\
 	   ns*(eps_val(m) + math.log((1+S/Ks_off)/(1+S/Ks_on)))
+	
 #Cluster activity (Table 2, p.4)
-	#print 'f, ', f,', ',
+	#print 'f, ', f,', '
 	A = 1/(1+math.exp(f))
+	#print 'a, ', A,','
 
 #Rate of receptor methylation (Table 2, p.4)
 	m = m+dm(cheR, cheB, a, b, A)*dt
 	#print 'm, ', m,', ',
 	cheYp = 3*(K_y*K_s*A)/(K_y*K_s*A + K_z + G_y)
 	#print 'cheYp, ', cheYp,', ',
-#	print cheYp
+	#print cheYp
 	mb = ccw_motor_bias(cheYp, mb0, H)
+
 	return m,mb
 
-def chemo(m,dt):
+# Compute position of the nose of the robot
+def nose_pos():
+	nose_dist = 8*factor # dist from centroid to nose (in units of factor)
+
+	x = pp.GetXPos() # position of (centroid of) the robot
+	y = pp.GetYPos()
+	yaw = pp.GetYaw()
+
+	#this calculates the position of the front of the bot (the nose)
+	nosex = x + nose_dist*math.cos(yaw)
+	nosey = y + nose_dist*math.sin(yaw)
+	return nosex, nosey
+
+# Run for one time step
+def run(dt):
+	speed = 20 # microns per second
+	pp.SetSpeed(speed, 0)
+
+# tumble one time step
+def tumble(dt):
+	deg_to_tumble = random.randrange(-179,180)
+	rad_to_tumble = deg_to_tumble*math.pi/180.0
+	speed_to_tumble = rad_to_tumble/dt
+	pp.SetSpeed(0,speed_to_tumble)
+
+def chemo(m,dt,dbg):
 	x1, y1 = nose_pos()
-	current_asp = green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
+	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
 	#print 'current_asp, ', current_asp,', ',
-	print 'asp,%.3f, ' % current_asp
-	print >>logfile, 'asp,%.3f, ' % current_asp,
+	if (dbg):
+		print '\nasp,%.3g, ' % current_asp
 	m,mb = rapidcell(current_asp, m,dt)
 	if random.random() <  mb:
-		run(0.20,dt) # 20cm/s for dt
+		run(dt) # run one time step
+		sys.stdout.write('r')
+		sys.stdout.flush()
 	else:
-		deg_to_tumble = random.randrange(-179,180)
-		rad_to_tumble = deg_to_tumble*math.pi/180.0
-		speed_to_tumble = rad_to_tumble/dt
-		tumble(speed_to_tumble,dt) # random speed for dt
+		tumble(dt) # for dt
+		sys.stdout.write('t')
+		sys.stdout.flush()
+
+	t=pp.GetDataTime()
+	robot.Read() # runs sim 1 timestep, re-reads positions
+	#print 'dt=%.0f ms' % (1000*(pp.GetDataTime()-t))
 	return m
 		
 # ---------------------------------------------------
@@ -140,27 +166,28 @@ def chemo(m,dt):
 
 if __name__ == "__main__":
 
-	now = datetime.datetime.now()
-	logfilename = "logfile-%s-%s-%s-%s-%s-%s.csv" %\
-			(now.year,now.month,now.day,now.hour,now.minute,now.second)
-	logfile = open(logfilename,'w+')
+	ensure_dir('simulation_robot');
 
-	fsize=24
-	factor = 10**(-2)
-
-	time=1;
+	#now = datetime.datetime.now()
+	#logfilename = "logfile-%s-%s-%s-%s-%s-%s.csv" %\
+			#(now.year,now.month,now.day,now.hour,now.minute,now.second)
+	#logfile = open(logfilename,'w+')
+	t=1;
 
 	Max = 400 # milli-moles (?)
 	Xc = 0.0
 	Yc = 0.0
-# D = 0.16 # moles/micro-meter (??)
+	factor = 10**(0) # scaling factor - conversion from UNITS to meters
 	diff_rate = 0.05*factor**2 # moles/cm (?)
 	fixed_time = 2000/factor # fixed_time
+	size_grad = 20*factor # how often to compute gradient (for display)
+	mag = 5.6 # how far out to compute gradient (for display) (??)
 
 	total_time_steps = 80000
+	#total_time_steps = 1000
 	N_frame =  20 #%number of frames to be printed out
 	N_step = round(total_time_steps/N_frame) #%number of steps between each frame
-	delta_t = 0.01 #%time-step
+	delta_t = 0.1 #%time-step
 		
 	vel_mag = 20*factor #%in Micron/s (average running velocity)
 
@@ -170,26 +197,59 @@ if __name__ == "__main__":
 #sp = SimulationProxy(robot,0);
 	robot.Read()	 # read from the proxies
 
+# Set up graphics
+	#fig = plt.figure(1,figsize=(4,4))
+	#plt.ion()
+	plt.figure(1)
+	#ax = fig.add_subplot(111)
+	plt.ylim((-mag*size_grad,mag*size_grad))
+	plt.xlim((-mag*size_grad,mag*size_grad))
+
+	#fig.show()
+	xnpos = np.array([]) # nose position
+	ynpos = np.array([])
+	xcpos = np.array([]) # centroid position
+	ycpos = np.array([])
+
 # find steady-state methylation for each cell, 5 is the initial guess
 	m = 5
 	x1, y1 = nose_pos()
-	current_asp = green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
+	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
+	tic = time.time()
 	for x in range (0,400):
-			print >>logfile, '\nt=',time,',',
-			print >>logfile, 'x,%.3f,y,%.3f,' % (x1,y1),
-			time = time+1;
+			t = t+1;
 			# time.sleep(0.1)
 			m,mb = rapidcell(current_asp, m,delta_t)
-			print >>logfile, 'asp,%.3f, ' % current_asp,
-			print >>logfile, 'state,equilibrate,',
-			print >>logfile, 'm,%.2f, ' % m,
-			print >>logfile, 'mb,%.3f, ' % mb,
+	# print 'm after ss %.3f, ' % m,
 
+# Now, do the chemotaxis
 	for x in range (0,total_time_steps):
-			print >>logfile, '\nt=',time,',',
+			#time.sleep(1)
+			t = t+1
+			m=chemo(m,delta_t,x%100==0)
+			sys.stdout.flush()
+
 			x1, y1 = nose_pos()
-			print >>logfile, 'x,%.3f,y,%.3f,' % (pp.GetXPos(),pp.GetYPos()),
-			time = time+1;
-			m=chemo(m,delta_t)
-			print >>logfile, 'm,%.2f, ' % m,
-			print >>logfile, 'mb,%.3f, ' % mb,
+			xnpos = np.append(xnpos,x1)
+			ynpos = np.append(ynpos,y1)
+			xcpos = np.append(xcpos,pp.GetXPos())
+			ycpos = np.append(ycpos,pp.GetYPos())
+			if (x%100==0):
+				print '\ntime=',t,',',
+				print  'm=%.2f, ' % m,
+				print  'mb=%.3f, ' % mb
+			if (x%100==0 or x==total_time_steps-1):
+				plt.cla()
+				draw_Green_gradient(Max,Xc,Yc,diff_rate,size_grad,fixed_time,mag,factor)
+				#plt.plot(xnpos,ynpos,'o',color='0.75')
+				plt.plot(xcpos,ycpos,'b.-')
+				plt.ylim((-mag*size_grad,mag*size_grad))
+				plt.xlim((-mag*size_grad,mag*size_grad))
+				#plt.draw() # uncomment to see display as it goes - slows down
+				plt.savefig("simulation_robot/frame_%d" % (t))
+
+	pp.SetSpeed(0.0,0.0) # move forward at 1.0 m/s, 0 rad/s
+	del pp
+	del robot
+	toc = time.time()
+	print 'total elapsed time = %.2fs = %.2f min' % (toc-tic, 60*(toc-tic))

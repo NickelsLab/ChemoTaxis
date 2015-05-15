@@ -7,13 +7,13 @@
 define ecoli_sonar sensor
 (
     # define the size of each transducer [xsize ysize zsize] in meters
-    size [0.01 0.05 0.01 ] 
+    size [0.1 0.1 0.1 ] 
     # define the range bounds [min max]
-    range [0.3 2.0]
+    range [0.3 100]
     # define the angular field of view (by default in degrees)
     fov 10
     # define the color that ranges are drawn in the gui
-    color_rgba [ 0 1 0 0.5] 
+    color_rgba [0 1 0 0.5] 
 )
 
 define ecoli_sonars ranger
@@ -28,7 +28,7 @@ define ecoli_sonars ranger
 define ecoli position
 (
 		  # actual size
-		  size [0.016 0.04 1]
+		  size [16 4 1]
 		  # centre of rotation offset
 		  origin [0 0 0 0]
 
@@ -50,7 +50,17 @@ define ecoli position
 		  #ecoli_eyes( )
 		  #ecoli_laser( )
 
+		  # Per http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1855780/ we see
+		  # body rotation rates of 12.5 Hz = 12.5 rot/s * 360 deg/rot 
+		  # = 4500 deg/s
+		  # = 450 deg / 100ms (too fast for us to simulate!)
+		  # 
+		  # body swim rates of 25uM/s
+
 		  # [ xmin xmax ymin ymax zmin zmax amin amax ] (m/s or deg/s)
-		  velocity_bounds [-1 1 -1 1 -1 1 -18000 18000 ]					
-		  acceleration_bounds [-1 1 -1 1 -1 1 -18000 18000]
+		  # our scaling is 1m==1micron
+
+		  velocity_bounds [-25 25 -25 25 -25 25 -3600 3600 ]					
+		  acceleration_bounds [-25 25 -25 25 -25 25 -3600 3600]
+		  update_interval 1
 )
