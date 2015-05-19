@@ -144,9 +144,10 @@ def chemo(m,dt,dbg):
 	x1, y1 = nose_pos()
 	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
 	#print 'current_asp, ', current_asp,', ',
+	m,mb = rapidcell(current_asp, m,dt)
 	if (dbg):
 		print '\nasp,%.3g, ' % current_asp
-	m,mb = rapidcell(current_asp, m,dt)
+		print 'mb = %.3g, ' % mb
 	if random.random() <  mb:
 		run(dt) # run one time step
 		sys.stdout.write('r')
@@ -169,23 +170,24 @@ if __name__ == "__main__":
 
 	ensure_dir('simulation_robot');
 
-	#now = datetime.datetime.now()
-	#logfilename = "logfile-%s-%s-%s-%s-%s-%s.csv" %\
-			#(now.year,now.month,now.day,now.hour,now.minute,now.second)
-	#logfile = open(logfilename,'w+')
+	now = datetime.datetime.now()
+	logfilename = "logfile-%s-%s-%s-%s-%s-%s.csv" %\
+			(now.year,now.month,now.day,now.hour,now.minute,now.second)
+	logfile = open(logfilename,'w+')
+
 	t=1;
 
-	Max = 400 # milli-moles (?)
+	Max = 4000 # milli-moles (?)
 	Xc = 0.0
 	Yc = 0.0
 	factor = 10**(0) # scaling factor - conversion from UNITS to meters
-	diff_rate = 0.05*factor**2 # moles/cm (?)
+	diff_rate = 0.50*factor**2 # moles/cm (?)
 	fixed_time = 2000/factor # fixed_time
 	size_grad = 20*factor # how often to compute gradient (for display)
 	mag = 5.6 # how far out to compute gradient (for display) (??)
 
-	total_time_steps = 80000
-	#total_time_steps = 1000
+	#total_time_steps = 80000
+	total_time_steps = 1000
 	N_frame =  20 #%number of frames to be printed out
 	N_step = round(total_time_steps/N_frame) #%number of steps between each frame
 	delta_t = 0.1 #%time-step
@@ -200,7 +202,7 @@ if __name__ == "__main__":
 
 # Set up graphics
 	#fig = plt.figure(1,figsize=(4,4))
-	#plt.ion()
+	plt.ion()
 	plt.figure(1)
 	#ax = fig.add_subplot(111)
 	plt.ylim((-mag*size_grad,mag*size_grad))
@@ -223,6 +225,8 @@ if __name__ == "__main__":
 			m,mb = rapidcell(current_asp, m,delta_t)
 	# print 'm after ss %.3f, ' % m,
 
+	print >>logfile,'t,m'
+
 # Now, do the chemotaxis
 	for x in range (0,total_time_steps):
 			#time.sleep(1)
@@ -235,10 +239,14 @@ if __name__ == "__main__":
 			ynpos = np.append(ynpos,y1)
 			xcpos = np.append(xcpos,pp.GetXPos())
 			ycpos = np.append(ycpos,pp.GetYPos())
+			
+
+			simtime = pp.GetDataTime()
+			print >>logfile,'%.2f, %.2f' % (simtime,m)
+
 			if (x%100==0):
 				print '\ntime=',t,',',
 				print  'm=%.2f, ' % m,
-				print  'mb=%.3f, ' % mb
 			if (x%100==0 or x==total_time_steps-1):
 				plt.cla()
 				draw_Green_gradient(Max,Xc,Yc,diff_rate,size_grad,fixed_time,mag,factor)
@@ -246,8 +254,8 @@ if __name__ == "__main__":
 				plt.plot(xcpos,ycpos,'b.-')
 				plt.ylim((-mag*size_grad,mag*size_grad))
 				plt.xlim((-mag*size_grad,mag*size_grad))
-				#plt.draw() # uncomment to see display as it goes - slows down
-				plt.savefig("simulation_robot/frame_%d" % (t))
+				plt.draw() # uncomment to see display as it goes - slows down
+				#plt.savefig("simulation_robot/frame_%d" % (t))
 
 	pp.SetSpeed(0.0,0.0) # move forward at 1.0 m/s, 0 rad/s
 	del pp

@@ -13,8 +13,8 @@ scale 3 # initial scale
 ecoli
 (
 name "ecoli"
-pose [-23.640 28.360 0.000 80.000]
-# pose [-73.640 28.360 0.000 80.000] # Nguyen uses this?
+# pose [-23.640 28.360 0.000 80.000]
+pose [-73.640 28.360 0.000 80.000] # Nguyen uses this?
 # pose [0 0 0 0]
 )
 
