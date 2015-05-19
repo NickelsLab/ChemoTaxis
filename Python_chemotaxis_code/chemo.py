@@ -67,6 +67,7 @@ def eps_val(m):
 		eps_val = eps[lower] + slope*(m-lower)
 	return eps_val
 
+
 def dm(cheR, cheB, a, b, A):
 	dm = a*(1-A)*cheR-b*A*cheB
 	return dm
