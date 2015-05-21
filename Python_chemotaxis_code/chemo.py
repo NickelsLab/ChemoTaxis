@@ -151,8 +151,8 @@ def tumble(dt):
 	pp.SetSpeed(0,speed_to_tumble)
 
 def chemo(m,dt,dbg):
-	x1, y1 = nose_pos()
-	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
+	xc, yc = nose_pos()
+	current_asp = Green_gradient( Max, Xs, Ys, diff_rate, xc, yc, fixed_time)
 	#print 'current_asp, ', current_asp,', ',
 	m,mb,cheYp = rapidcell(current_asp, m,dt)
 	if (dbg):
@@ -190,8 +190,8 @@ if __name__ == "__main__":
 	t=1;
 
 	Max = 4000 # milli-moles (?)
-	Xc = 0.0
-	Yc = 0.0
+	Xs = 0.0
+	Ys = 0.0
 	factor = 10**(0) # scaling factor - conversion from UNITS to meters
 	diff_rate = 0.5*factor**2 # moles/cm (?)
 	fixed_time = 2000/factor # fixed_time
@@ -224,15 +224,15 @@ if __name__ == "__main__":
 	#fig.show()
 	xnpos = np.array([]) # nose position
 	ynpos = np.array([])
-	xcpos = np.array([]) # centroid position
-	ycpos = np.array([])
+	xpos = np.array([]) # robot centroid position
+	ypos = np.array([])
 
 # find steady-state methylation for each cell, 5 is the initial guess
 	m = 5
-	x1, y1 = nose_pos()
-	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
+	xc, yc = nose_pos()
+	current_asp = Green_gradient( Max, Xs, Ys, diff_rate, xc, yc, fixed_time)
 	tic = time.time()
-	r = abs_dist(Xc, Yc) # robot distance from center of chemical
+	r = abs_dist(Xs, Ys) # robot distance from center of chemical
 	for x in range (0,400):
 			t = t+1;
 			# time.sleep(0.1)
@@ -248,12 +248,12 @@ if __name__ == "__main__":
 			m,cheYp,run_or_tumble=chemo(m,delta_t,x%100==0)
 			sys.stdout.flush()
 
-			x1, y1 = nose_pos()
-			r = abs_dist(Xc, Yc)
-			xnpos = np.append(xnpos,x1)
-			ynpos = np.append(ynpos,y1)
-			xcpos = np.append(xcpos,pp.GetXPos())
-			ycpos = np.append(ycpos,pp.GetYPos())
+			xc, yc = nose_pos()
+			r = abs_dist(Xs, Ys)
+			xnpos = np.append(xnpos,xc)
+			ynpos = np.append(ynpos,yc)
+			xpos = np.append(xpos,pp.GetXPos())
+			ypos = np.append(ypos,pp.GetYPos())
 			
 
 			simtime = pp.GetDataTime()
@@ -264,9 +264,9 @@ if __name__ == "__main__":
 				print  'm=%.2f, ' % m,
 			if (x%100==0 or x==total_time_steps-1):
 				plt.cla()
-				draw_Green_gradient(Max,Xc,Yc,diff_rate,size_grad,fixed_time,mag,factor)
+				draw_Green_gradient(Max,Xs,Ys,diff_rate,size_grad,fixed_time,mag,factor)
 				#plt.plot(xnpos,ynpos,'o',color='0.75')
-				plt.plot(xcpos,ycpos,'b.-')
+				plt.plot(xpos,ypos,'b.-')
 				plt.ylim((-mag*size_grad,mag*size_grad))
 				plt.xlim((-mag*size_grad,mag*size_grad))
 				plt.draw() # uncomment to see display as it goes - slows down
