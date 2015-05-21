@@ -6,6 +6,7 @@
 # Get concentration from Dr. Nguyen's function
 # Compare methylation state from two points, run or tumble
 # Tim Davison Feb 2015
+# Duncan Frasch May 2015
 
 # Working on scaling - using 1uM = 1M (x10^6) 
 
@@ -113,7 +114,7 @@ def rapidcell(S, m, dt):
 	#print cheYp
 	mb = ccw_motor_bias(cheYp, mb0, H)
 
-	return m,mb
+	return m,mb,cheYp
 
 # Compute position of the nose of the robot
 def nose_pos():
@@ -127,6 +128,15 @@ def nose_pos():
 	nosex = x + nose_dist*math.cos(yaw)
 	nosey = y + nose_dist*math.sin(yaw)
 	return nosex, nosey
+
+# Compute the absolute distance of the robot from the center of the arena
+def abs_dist(Xs, Ys):
+	x = pp.GetXPos() # x coord of (centroid of) the robot
+	y = pp.GetYPos() # y coord of (centroid of) the robot
+
+
+	r = math.sqrt((x-Xs)**2 + (y-Ys)**2) # distance
+	return r
 
 # Run for one time step
 def run(dt):
@@ -144,7 +154,7 @@ def chemo(m,dt,dbg):
 	x1, y1 = nose_pos()
 	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
 	#print 'current_asp, ', current_asp,', ',
-	m,mb = rapidcell(current_asp, m,dt)
+	m,mb,cheYp = rapidcell(current_asp, m,dt)
 	if (dbg):
 		print '\nasp,%.3g, ' % current_asp
 		print 'mb = %.3g, ' % mb
@@ -152,15 +162,17 @@ def chemo(m,dt,dbg):
 		run(dt) # run one time step
 		sys.stdout.write('r')
 		sys.stdout.flush()
+		run_or_tumble = 1
 	else:
 		tumble(dt) # for dt
 		sys.stdout.write('t')
 		sys.stdout.flush()
+		run_or_tumble = 0
 
 	t=pp.GetDataTime()
 	robot.Read() # runs sim 1 timestep, re-reads positions
 	#print 'dt=%.0f ms' % (1000*(pp.GetDataTime()-t))
-	return m
+	return m,cheYp,run_or_tumble
 		
 # ---------------------------------------------------
 # Main program
@@ -181,13 +193,14 @@ if __name__ == "__main__":
 	Xc = 0.0
 	Yc = 0.0
 	factor = 10**(0) # scaling factor - conversion from UNITS to meters
-	diff_rate = 0.50*factor**2 # moles/cm (?)
+	diff_rate = 0.5*factor**2 # moles/cm (?)
 	fixed_time = 2000/factor # fixed_time
 	size_grad = 20*factor # how often to compute gradient (for display)
 	mag = 5.6 # how far out to compute gradient (for display) (??)
 
 	#total_time_steps = 80000
-	total_time_steps = 1000
+	total_time_steps = 5000
+	#total_time_steps = 1000
 	N_frame =  20 #%number of frames to be printed out
 	N_step = round(total_time_steps/N_frame) #%number of steps between each frame
 	delta_t = 0.1 #%time-step
@@ -196,7 +209,7 @@ if __name__ == "__main__":
 
 # Make proxies for simulated robot
 	robot = PlayerClient("localhost");
-	pp = Position2dProxy(robot,0);
+	pp = Position2dProxy(robot,0);logfile
 #sp = SimulationProxy(robot,0);
 	robot.Read()	 # read from the proxies
 
@@ -219,22 +232,24 @@ if __name__ == "__main__":
 	x1, y1 = nose_pos()
 	current_asp = Green_gradient( Max, Xc, Yc, diff_rate, x1, y1, fixed_time)
 	tic = time.time()
+	r = abs_dist(Xc, Yc) # robot distance from center of chemical
 	for x in range (0,400):
 			t = t+1;
 			# time.sleep(0.1)
-			m,mb = rapidcell(current_asp, m,delta_t)
+			m,mb,cheYp = rapidcell(current_asp, m,delta_t)
 	# print 'm after ss %.3f, ' % m,
 
-	print >>logfile,'t,m'
+	#print >>logfile,'t,m,r,cheYp'
 
 # Now, do the chemotaxis
 	for x in range (0,total_time_steps):
 			#time.sleep(1)
 			t = t+1
-			m=chemo(m,delta_t,x%100==0)
+			m,cheYp,run_or_tumble=chemo(m,delta_t,x%100==0)
 			sys.stdout.flush()
 
 			x1, y1 = nose_pos()
+			r = abs_dist(Xc, Yc)
 			xnpos = np.append(xnpos,x1)
 			ynpos = np.append(ynpos,y1)
 			xcpos = np.append(xcpos,pp.GetXPos())
@@ -242,7 +257,7 @@ if __name__ == "__main__":
 			
 
 			simtime = pp.GetDataTime()
-			print >>logfile,'%.2f, %.2f' % (simtime,m)
+			print >>logfile,'%.2f, %.2f, %.2f, %.2f, %d' % (simtime,m,r,cheYp,run_or_tumble)
 
 			if (x%100==0):
 				print '\ntime=',t,',',
