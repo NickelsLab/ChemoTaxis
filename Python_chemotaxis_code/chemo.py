@@ -129,18 +129,17 @@ def nose_pos():
 	nosey = y + nose_dist*math.sin(yaw)
 	return nosex, nosey
 
-# Compute the absolute distance of the robot from the center of the arena
+# Compute the absolute distances of the robot from the center of the chemical
 def abs_dist(Xs, Ys):
 	x = pp.GetXPos() # x coord of (centroid of) the robot
 	y = pp.GetYPos() # y coord of (centroid of) the robot
-
-
-	r = math.sqrt((x-Xs)**2 + (y-Ys)**2) # distance
-	return r
+	x1 = x - Xs
+	y1 = y - Ys
+	return x1, y1
 
 # Run for one time step
 def run(dt):
-	speed = 20 # microns per second
+	speed = 2 # microns per second
 	pp.SetSpeed(speed, 0)
 
 # tumble one time step
@@ -232,7 +231,7 @@ if __name__ == "__main__":
 	xc, yc = nose_pos()
 	current_asp = Green_gradient( Max, Xs, Ys, diff_rate, xc, yc, fixed_time)
 	tic = time.time()
-	r = abs_dist(Xs, Ys) # robot distance from center of chemical
+	x1, y1 = abs_dist(Xs, Ys) # robot distance from center of chemical
 	for x in range (0,400):
 			t = t+1;
 			# time.sleep(0.1)
@@ -257,7 +256,7 @@ if __name__ == "__main__":
 			
 
 			simtime = pp.GetDataTime()
-			print >>logfile,'%.2f, %.2f, %.2f, %.2f, %d' % (simtime,m,r,cheYp,run_or_tumble)
+			print >>logfile,'%.2f, %.2f, %.2f, %.2f, %.2f, %d' % (simtime,m,x1,y1,cheYp,run_or_tumble)
 
 			if (x%100==0):
 				print '\ntime=',t,',',
@@ -277,3 +276,4 @@ if __name__ == "__main__":
 	del robot
 	toc = time.time()
 	print 'total elapsed time = %.2fs = %.2f min' % (toc-tic, 60*(toc-tic))
+	raw_input("press enter to continue")
