@@ -139,7 +139,7 @@ def abs_dist(Xs, Ys):
 
 # Run for one time step
 def run(dt):
-	speed = 2 # microns per second
+	speed = 20 # microns per second
 	pp.SetSpeed(speed, 0)
 
 # tumble one time step
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 	mag = 5.6 # how far out to compute gradient (for display) (??)
 
 	#total_time_steps = 80000
-	total_time_steps = 5000
+	total_time_steps = 50000
 	#total_time_steps = 1000
 	N_frame =  20 #%number of frames to be printed out
 	N_step = round(total_time_steps/N_frame) #%number of steps between each frame
@@ -239,11 +239,14 @@ if __name__ == "__main__":
 	# print 'm after ss %.3f, ' % m,
 
 	#print >>logfile,'t,m,r,cheYp'
+	prev_simtime = pp.GetDataTime()
 
 # Now, do the chemotaxis
 	for x in range (0,total_time_steps):
 			#time.sleep(1)
 			t = t+1
+			simtime = pp.GetDataTime()
+			delta_t = simtime - prev_simtime
 			m,cheYp,run_or_tumble=chemo(m,delta_t,x%100==0)
 			sys.stdout.flush()
 
@@ -254,8 +257,8 @@ if __name__ == "__main__":
 			xpos = np.append(xpos,pp.GetXPos())
 			ypos = np.append(ypos,pp.GetYPos())
 			
-
-			simtime = pp.GetDataTime()
+			prev_simtime = simtime
+			
 			print >>logfile,'%.2f, %.2f, %.2f, %.2f, %.2f, %d' % (simtime,m,x1,y1,cheYp,run_or_tumble)
 
 			if (x%100==0):
