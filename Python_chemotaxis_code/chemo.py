@@ -49,7 +49,9 @@ def draw_Green_gradient(Max,Xs,Ys,D,size_grad,t,mag,factor):
 	X,Y = np.meshgrid(grid,grid)
 	r2=(X-Xs)**2+(Y-Ys)**2
 	G=Max*np.exp(-r2/(4*D*t))/(4*math.pi*D*t)
-	plt.contour(X,Y,G,linewidths=2)
+	contour1 = plt.contour(X,Y,G,linewidths=2)
+	colorbar = plt.colorbar(contour1, shrink=0.8, extend='both')
+	plt.clabel(contour1, inline=1, fontsize=10)
 	plt.ylim((-mag*size_grad,mag*size_grad))
 	plt.xlim((-mag*size_grad,mag*size_grad))
 	plt.draw()
@@ -171,7 +173,7 @@ def chemo(m,dt,dbg):
 	t=pp.GetDataTime()
 	robot.Read() # runs sim 1 timestep, re-reads positions
 	#print 'dt=%.0f ms' % (1000*(pp.GetDataTime()-t))
-	return m,cheYp,run_or_tumble
+	return m,cheYp,run_or_tumble,current_asp
 		
 # ---------------------------------------------------
 # Main program
@@ -186,19 +188,19 @@ if __name__ == "__main__":
 			(now.year,now.month,now.day,now.hour,now.minute,now.second)
 	logfile = open(logfilename,'w+')
 
-	t=1;
+	cycle=1;
 
 	Max = 4000 # milli-moles (?)
 	Xs = 0.0
 	Ys = 0.0
 	factor = 10**(0) # scaling factor - conversion from UNITS to meters
-	diff_rate = 0.25*factor**2 # moles/cm (?)
+	diff_rate = 0.125*factor**2 # moles/cm (?)
 	fixed_time = 2000/factor # fixed_time
 	size_grad = 20*factor # how often to compute gradient (for display)
 	mag = 5.6 # how far out to compute gradient (for display) (??)
 
 	#total_time_steps = 80000
-	total_time_steps = 50000
+	total_time_steps = 5000
 	#total_time_steps = 1000
 	N_frame =  20 #%number of frames to be printed out
 	N_step = round(total_time_steps/N_frame) #%number of steps between each frame
@@ -233,26 +235,26 @@ if __name__ == "__main__":
 	tic = time.time()
 	x1, y1 = abs_dist(Xs, Ys) # robot distance from center of chemical
 	for x in range (0,400):
-			t = t+1;
+			cycle = cycle+1;
 			# time.sleep(0.1)
 			m,mb,cheYp = rapidcell(current_asp, m,delta_t)
 	# print 'm after ss %.3f, ' % m,
 
-	#print >>logfile,'t,m,r,cheYp'
+	print >>logfile,'simtime, delta_t, asp, m, x, y, cheY-P, r(1)/t(0)'
 
 	prev_simtime = pp.GetDataTime() - 0.1 # initial time of the controller
 
 # Now, do the chemotaxis
 	for x in range (0,total_time_steps):
 			#time.sleep(1)
-			t = t+1
+			cycle = cycle+1
 			simtime = pp.GetDataTime()
 			delta_t = simtime - prev_simtime
-			m,cheYp,run_or_tumble=chemo(m,delta_t,x%100==0)
+			m,cheYp,run_or_tumble,asp=chemo(m,delta_t,x%100==0)
 			sys.stdout.flush()
 
 			xc, yc = nose_pos()
-			r = abs_dist(Xs, Ys)
+			x1, y1 = abs_dist(Xs, Ys)
 			xnpos = np.append(xnpos,xc)
 			ynpos = np.append(ynpos,yc)
 			xpos = np.append(xpos,pp.GetXPos())
@@ -260,13 +262,14 @@ if __name__ == "__main__":
 			
 			prev_simtime = simtime
 			
-			print >>logfile,'%.3f, %.3f, %.2f, %.2f, %.2f, %.2f, %d' % (simtime, delta_t,m,x1,y1,cheYp,run_or_tumble)
+			print >>logfile,'%.3f, %.3f, %.3g, %.2f, %.2f, %.2f, %.2f, %d' % (simtime, delta_t, asp, m, x1, y1, cheYp, run_or_tumble)
 
 			if (x%100==0):
-				print '\ntime=',t,',',
+				print '\ncycle=',cycle,',',
 				print  'm=%.2f, ' % m,
 			if (x%100==0 or x==total_time_steps-1):
 				plt.cla()
+				plt.clf()
 				draw_Green_gradient(Max,Xs,Ys,diff_rate,size_grad,fixed_time,mag,factor)
 				#plt.plot(xnpos,ynpos,'o',color='0.75')
 				plt.plot(xpos,ypos,'b.-')
