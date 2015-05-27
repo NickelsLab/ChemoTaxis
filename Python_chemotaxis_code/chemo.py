@@ -192,7 +192,7 @@ if __name__ == "__main__":
 	Xs = 0.0
 	Ys = 0.0
 	factor = 10**(0) # scaling factor - conversion from UNITS to meters
-	diff_rate = 0.5*factor**2 # moles/cm (?)
+	diff_rate = 0.25*factor**2 # moles/cm (?)
 	fixed_time = 2000/factor # fixed_time
 	size_grad = 20*factor # how often to compute gradient (for display)
 	mag = 5.6 # how far out to compute gradient (for display) (??)
@@ -239,7 +239,8 @@ if __name__ == "__main__":
 	# print 'm after ss %.3f, ' % m,
 
 	#print >>logfile,'t,m,r,cheYp'
-	prev_simtime = pp.GetDataTime()
+
+	prev_simtime = pp.GetDataTime() - 0.1 # initial time of the controller
 
 # Now, do the chemotaxis
 	for x in range (0,total_time_steps):
@@ -259,7 +260,7 @@ if __name__ == "__main__":
 			
 			prev_simtime = simtime
 			
-			print >>logfile,'%.2f, %.2f, %.2f, %.2f, %.2f, %d' % (simtime,m,x1,y1,cheYp,run_or_tumble)
+			print >>logfile,'%.3f, %.3f, %.2f, %.2f, %.2f, %.2f, %d' % (simtime, delta_t,m,x1,y1,cheYp,run_or_tumble)
 
 			if (x%100==0):
 				print '\ntime=',t,',',
