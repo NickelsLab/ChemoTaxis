@@ -15,6 +15,7 @@ ecoli
 name "ecoli"
 # pose [-23.640 28.360 0.000 80.000]
 pose [-73.640 28.360 0.000 80.000] # Nguyen uses this?
+# pose [-160.000 0 0 90.000] # for testing a changing initial position
 # pose [0 0 0 0]
 )
 
