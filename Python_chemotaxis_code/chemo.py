@@ -156,18 +156,18 @@ def chemo(m,dt,dbg):
 	current_asp = Green_gradient( Max, Xs, Ys, diff_rate, xc, yc, fixed_time)
 	#print 'current_asp, ', current_asp,', ',
 	m,mb,cheYp = rapidcell(current_asp, m,dt)
-	if (dbg):
-		print '\nasp,%.3g, ' % current_asp
-		print 'mb = %.3g, ' % mb
+	#if (dbg):
+		#print '\nasp,%.3g, ' % current_asp
+		#print 'mb = %.3g, ' % mb
 	if random.random() <  mb:
 		run(dt) # run one time step
-		sys.stdout.write('r')
-		sys.stdout.flush()
+		#sys.stdout.write('r')
+		#sys.stdout.flush()
 		run_or_tumble = 1
 	else:
 		tumble(dt) # for dt
-		sys.stdout.write('t')
-		sys.stdout.flush()
+		#sys.stdout.write('t')
+		#sys.stdout.flush()
 		run_or_tumble = 0
 
 	t=pp.GetDataTime()
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 			m,mb,cheYp = rapidcell(current_asp, m,delta_t)
 	# print 'm after ss %.3f, ' % m,
 
-	print >>logfile,'simtime, delta_t, asp, m, x, y, cheY-P, r(1)/t(0)'
+	#print >>logfile,'simtime, delta_t, asp, m, x, y, cheY-P, r(1)/t(0)'
 
 	prev_simtime = pp.GetDataTime() - 0.1 # initial time of the controller
 
@@ -264,23 +264,29 @@ if __name__ == "__main__":
 			
 			print >>logfile,'%.3f, %.3f, %.3g, %.2f, %.2f, %.2f, %.2f, %d' % (simtime, delta_t, asp, m, x1, y1, cheYp, run_or_tumble)
 
-			if (x%100==0):
-				print '\ncycle=',cycle,',',
-				print  'm=%.2f, ' % m,
-			if (x%100==0 or x==total_time_steps-1):
-				plt.cla()
-				plt.clf()
-				draw_Green_gradient(Max,Xs,Ys,diff_rate,size_grad,fixed_time,mag,factor)
-				#plt.plot(xnpos,ynpos,'o',color='0.75')
-				plt.plot(xpos,ypos,'b.-')
-				plt.ylim((-mag*size_grad,mag*size_grad))
-				plt.xlim((-mag*size_grad,mag*size_grad))
-				plt.draw() # uncomment to see display as it goes - slows down
-				#plt.savefig("simulation_robot/frame_%d" % (t))
+			#if (x%100==0):
+				#print '\ncycle=',cycle,',',
+				#print  'm=%.2f, ' % m,
+			#if (x%100==0 or x==total_time_steps-1):
+				#plt.cla()
+				#plt.clf()
+				#draw_Green_gradient(Max,Xs,Ys,diff_rate,size_grad,fixed_time,mag,factor)
+				##plt.plot(xnpos,ynpos,'o',color='0.75')
+				#plt.plot(xpos,ypos,'b.-')
+				#plt.ylim((-mag*size_grad,mag*size_grad))
+				#plt.xlim((-mag*size_grad,mag*size_grad))
+				#plt.draw() # uncomment to see display as it goes - slows down
+				##plt.savefig("simulation_robot/frame_%d" % (t))
+
+	draw_Green_gradient(Max,Xs,Ys,diff_rate,size_grad,fixed_time,mag,factor)
+	plt.plot(xpos,ypos,'b.-')
+	plt.ylim((-mag*size_grad,mag*size_grad))
+	plt.xlim((-mag*size_grad,mag*size_grad))
+	plt.draw()
 
 	pp.SetSpeed(0.0,0.0) # move forward at 1.0 m/s, 0 rad/s
 	del pp
 	del robot
 	toc = time.time()
-	print 'total elapsed time = %.2fs = %.2f min' % (toc-tic, 60*(toc-tic))
+	print 'total elapsed time = %.2f s = %.2f min' % (toc-tic, (toc-tic)/60)
 	raw_input("press enter to continue")
