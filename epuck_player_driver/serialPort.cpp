@@ -126,7 +126,7 @@ SerialPort::recvChar()
   char message = -1;
   fd_set readfds;
   struct timeval timeout;
-  int retval;
+  int retval, numread;
 
   timeout.tv_sec=1;
   timeout.tv_usec=0;
@@ -134,13 +134,20 @@ SerialPort::recvChar()
   FD_ZERO(&readfds);
   FD_SET (this->fileDescriptor , &readfds);
   retval=select(this->fileDescriptor+1, &readfds, NULL, NULL, &timeout);
-  if (retval==-1)
-	  perror("SerialPort::recvChar::select()");
-  else if (retval) 
-	  while(read(this->fileDescriptor, &message, 1) <= 0);
-  else
-	  printf("Timeout waiting for data\n"); 
 
+  switch(retval) {
+	  case -1: 	perror("SerialPort::recvChar::select()"); 
+				numread = -1;
+				break;
+	  case 0:	printf("SerialPort::recvChar::select():Timeout waiting for data\n");  
+				numread = 0;
+				break;
+	  case 1: 	numread = read(this->fileDescriptor, &message, 1);
+				break;
+	  default:	printf("SerialPort::recvChar: Huh? select() returned a %d\n",retval);
+				numread = 0;
+				break;
+	  };
   return message;
 }
 
@@ -157,11 +164,16 @@ int SerialPort::recvBinaryArray(char *array, unsigned maxlen) {
   retval=select(this->fileDescriptor+1, &readfds, NULL, NULL, &timeout);
   // returns # of ready file descriptors (0 on timeout)
   switch(retval) {
-	  case -1: 	perror("SerialPort::recvBinaryArray::select()"); break;
-	  case 0:	printf("Timeout waiting for data\n");  break;
+	  case -1: 	perror("SerialPort::recvBinaryArray::select()"); 
+				numread = -1;
+				break;
+	  case 0:	printf("SerialPort::recvBinaryArray::select():Timeout waiting for data\n");  
+				numread = 0;
+				break;
 	  case 1: 	numread = read(this->fileDescriptor, array, maxlen);
 				break;
 	  default:	printf("SerialPort::recvBinaryArray: Huh? select() returned a %d\n",retval);
+				numread = 0;
 				break;
 	  };
 //  printf("SerialPort::recvBinaryArray::Read %d bytes: ",numread);
@@ -191,22 +203,10 @@ SerialPort::recvCharArray(char* array,
 }
 
 int
-SerialPort::sendCharArray(char* array,
+SerialPort::sendCharArray(char *array,
                                   unsigned length) 
 {
-	int nw,num_write=0;
-	for (unsigned int i=0;i<length;i++) {
-		nw = sendChar(array[i]);
-		//printf("Sent '%c=%02x', rtn=%d, %d bytes written so far\n",0xff&array[i],0xff&(array[i]),nw,num_write);
-		//fflush(stdout);
-		if (num_write==-1) { 
-			printf("Error: %s\n",strerror(errno));
-		} else
-		num_write += nw;
-	}
-	// This should work, but freezes epuck
-  	//num_write = write(this->fileDescriptor, &array, length);
-	return num_write;
+	return write(this->fileDescriptor, array, length);
 }
 
 void SerialPort::sendInt(int message) 
@@ -221,7 +221,5 @@ void SerialPort::sendInt(int message)
 
 int SerialPort::sendChar(char message) 
 {
-  int tmp = 0;
-  tmp = write(this->fileDescriptor, &message, 1);
-  return tmp;
+  return write(this->fileDescriptor, &message, 1);
 }
