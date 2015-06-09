@@ -53,16 +53,6 @@ public:
 
   ~SerialPort();
 
-  /** Return the last error.
-   *
-   * Return the description of last error.
-   * @return A std::string describing the error.
-   */
-  inline std::string getError() const
-  {
-    return this->errorDescription;
-  }
-
   /// Open the serial port device and set the configurations for it.
   int initialize();
 
@@ -72,7 +62,7 @@ public:
    * signed integer.
    * @return The received signed integer.
    */
-  int recvInt() const;
+  int recvInt() ;
 
   /** Receive an unsigned interger from e-puck.
    *
@@ -80,7 +70,7 @@ public:
    * unsigned integer.
    * @return The received unsigned integer.
    */
-  unsigned recvUnsigned() const;
+  unsigned recvUnsigned() ;
 
   /** Receive a char from e-puck.
    *
@@ -88,49 +78,42 @@ public:
    * char.
    * @return The received char.
    */
-  char recvChar() const;
-
-  /** Receive an array of unsigned char from e-puck.
-   *
-   * @param array Pointer to array where the received char will be put.
-   * @param length Length of array that will be received.
-   */
-  int recvUnsignedCharArray(unsigned char* const array, unsigned length) const;
+  char recvChar() ;
 
   /** Receive an array of char from e-puck.
    *
    * @param array Pointer to array where the received char will be put.
    * @param length Length of array that will be received.
    */
-  int recvCharArray(char* const array, unsigned length) const;
+  int recvCharArray(char* array, unsigned length) ;
+
+  /** Receive a binary array from e-puck.
+   *
+   * @param array Pointer to array where the received char will be put.
+   * @param length Length of array that will be received.
+   */
+  int recvBinaryArray(char* array, unsigned maxlength);
 
   /** Send an array of char to e-puck.
    *
    * @param array Pointer to array where the sent chars will be looked up.
    * @param length Length of array that will be sent.
    */
-  int sendCharArray(char* const array, unsigned length) const;
-
-  /** Send an array of unsigned char to e-puck.
-   *
-   * @param array Pointer to array where the sent chars will be looked up.
-   * @param length Length of array that will be sent.
-   */
-  int sendUnsignedCharArray(unsigned char* const array, unsigned length) const;
+  int sendCharArray(char* array, unsigned length) ;
 
   /** Send an integer to e-puck.
    *
    * Send two bytes to e-puck. It's an integer number up to 65535.
    * @param message The integer to be sent.
    */
-  void sendInt(int message) const;
+  void sendInt(int message) ;
 
   /** Send a character to e-puck.
    *
    * Send one character to e-puck.
    * @param message The charecter to be sent.
    */
-  int sendChar(char message) const;
+  int sendChar(char message) ;
 
   void flushInput() { tcflush(this->fileDescriptor, TCIFLUSH); };
 

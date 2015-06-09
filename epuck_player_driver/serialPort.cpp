@@ -97,45 +97,31 @@ int SerialPort::initialize()
 }
 
 int
-SerialPort::recvInt() const
+SerialPort::recvInt() 
 {
   char message[2];
   fd_set readfds;
 
-  FD_ZERO(&readfds);
-  FD_SET (this->fileDescriptor , &readfds);
-  select(this->fileDescriptor+1, &readfds, NULL, NULL, NULL);
-  while(read(this->fileDescriptor, message, 1) <= 0);
-
-  FD_ZERO(&readfds);
-  FD_SET (this->fileDescriptor , &readfds);
-  select(this->fileDescriptor+1, &readfds, NULL, NULL, NULL);
-  while(read(this->fileDescriptor, message+1, 1) <= 0);
+  message[0] = recvChar();
+  message[1] = recvChar();
 
   return (message[1] << 8) | (message[0] & 0xFF);
 }
 
 unsigned
-SerialPort::recvUnsigned() const
+SerialPort::recvUnsigned() 
 {
   char message[2];
   fd_set readfds;
 
-  FD_ZERO(&readfds);
-  FD_SET (this->fileDescriptor , &readfds);
-  select(this->fileDescriptor+1, &readfds, NULL, NULL, NULL);
-  while(read(this->fileDescriptor, message, 1) <= 0);
-
-  FD_ZERO(&readfds);
-  FD_SET (this->fileDescriptor , &readfds);
-  select(this->fileDescriptor+1, &readfds, NULL, NULL, NULL);
-  while(read(this->fileDescriptor, message+1, 1) <= 0);
+  message[0] = recvChar();
+  message[1] = recvChar();
 
   return ((message[1] & 0xFF) << 8) | (message[0] & 0xFF);
 }
 
 char
-SerialPort::recvChar() const
+SerialPort::recvChar() 
 {
   char message = -1;
   fd_set readfds;
@@ -158,33 +144,35 @@ SerialPort::recvChar() const
   return message;
 }
 
-int
-SerialPort::recvUnsignedCharArray(unsigned char* const array,
-                                  unsigned length) const
-{
+int SerialPort::recvBinaryArray(char *array, unsigned maxlen) {
   fd_set readfds;
+  struct timeval timeout;
+  int retval, numread;
+
+  timeout.tv_sec=1;
+  timeout.tv_usec=0;
+
   FD_ZERO(&readfds);
   FD_SET (this->fileDescriptor , &readfds);
-
-  int i, num_reads;
-  for(i = num_reads = 0; length-i > 0; i+=num_reads)
-  {
-    select(this->fileDescriptor+1, &readfds, NULL, NULL, NULL);
-    if(FD_ISSET(this->fileDescriptor ,&readfds))
-    {
-      num_reads = read(this->fileDescriptor, array+i, length-i);
-    }
-    else
-    {
-      return -1;
-    }
-  }
-  return 0;
+  retval=select(this->fileDescriptor+1, &readfds, NULL, NULL, &timeout);
+  // returns # of ready file descriptors (0 on timeout)
+  switch(retval) {
+	  case -1: 	perror("SerialPort::recvBinaryArray::select()"); break;
+	  case 0:	printf("Timeout waiting for data\n");  break;
+	  case 1: 	numread = read(this->fileDescriptor, array, maxlen);
+				break;
+	  default:	printf("SerialPort::recvBinaryArray: Huh? select() returned a %d\n",retval);
+				break;
+	  };
+//  printf("SerialPort::recvBinaryArray::Read %d bytes: ",numread);
+//  for (int i=0;i<numread;i++) printf("'%02x', ",array[i]);
+//  printf(".\n");
+  return numread;
 }
 
 int
-SerialPort::recvCharArray(char* const array,
-                                  unsigned length) const
+SerialPort::recvCharArray(char* array,
+                                  unsigned length) 
 {
 	int num_read=0;
 	for (unsigned int i=0;i<length;i++) {
@@ -203,13 +191,13 @@ SerialPort::recvCharArray(char* const array,
 }
 
 int
-SerialPort::sendCharArray(char* const array,
-                                  unsigned length) const
+SerialPort::sendCharArray(char* array,
+                                  unsigned length) 
 {
 	int nw,num_write=0;
 	for (unsigned int i=0;i<length;i++) {
 		nw = sendChar(array[i]);
-		//printf("Sent '%c', rtn=%d, %d bytes written so far\n",array[i],nw,num_write);
+		//printf("Sent '%c=%02x', rtn=%d, %d bytes written so far\n",0xff&array[i],0xff&(array[i]),nw,num_write);
 		//fflush(stdout);
 		if (num_write==-1) { 
 			printf("Error: %s\n",strerror(errno));
@@ -221,18 +209,7 @@ SerialPort::sendCharArray(char* const array,
 	return num_write;
 }
 
-
-int
-SerialPort::sendUnsignedCharArray(unsigned char* const array,
-                                  unsigned length) const
-{
-	int num_write;
-  	num_write = write(this->fileDescriptor, &array, length);
-	return num_write;
-}
-
-
-void SerialPort::sendInt(int message) const
+void SerialPort::sendInt(int message) 
 {
   //TODO: verificar o tamanho do inteiro (check the entire size?)
   char chMessage[2];
@@ -242,7 +219,7 @@ void SerialPort::sendInt(int message) const
   write(this->fileDescriptor, chMessage, 2);
 }
 
-int SerialPort::sendChar(char message) const
+int SerialPort::sendChar(char message) 
 {
   int tmp = 0;
   tmp = write(this->fileDescriptor, &message, 1);
