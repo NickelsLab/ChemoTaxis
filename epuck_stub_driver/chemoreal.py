@@ -23,8 +23,17 @@ import sys, os
 sys.path.append('/usr/local/lib/python2.7/site-packages/')
 sys.path.append('/usr/local/lib64/python2.7/site-packages/')
 
-def grey_to_asp()
-	
+def grey_to_asp():
+	lcr=ep.ReadLineSensors()
+	if len(lcr)<2:
+		centersensor=950 # if an error occurs in the sensor reading, this value will likely make the robot tumble
+	else:
+		centersensor=lcr[1] # reads middle sensor only
+	sensfactA=0.000075
+	sensfactB=-0.01
+	sensfactC=1000
+	asp=sensfactA*math.exp(sensfactB*(centersensor-sensfactC))
+	return asp, centersensor
 
 def eps_val(m):
 	eps = [1.0, 0.5, 0.0, -0.3, -0.6, -0.85, -1.1, -2.0, -3.0]
@@ -88,7 +97,7 @@ def rapidcell(S, m, dt):
 
 # Run for one time step
 def run(dt):
-	speed = 20 # microns per second
+	speed = 0.02 # actual units for robot
 	ep.SetVel(speed, 0)
 
 # tumble one time step
@@ -99,7 +108,7 @@ def tumble(dt):
 	ep.SetVel(0,speed_to_tumble)
 
 def chemo(m,dt,dbg):
-	current_asp = #??????
+	current_asp, sensor = grey_to_asp()
 	#print 'current_asp, ', current_asp,', ',
 	m,mb,cheYp = rapidcell(current_asp, m,dt)
 	#if (dbg):
@@ -117,7 +126,7 @@ def chemo(m,dt,dbg):
 		run_or_tumble = 0
 
 	t=time.time()
-	return m,cheYp,run_or_tumble,current_asp
+	return m,cheYp,run_or_tumble,current_asp,sensor
 		
 # ---------------------------------------------------
 # Main program
@@ -126,7 +135,6 @@ def chemo(m,dt,dbg):
 if __name__ == "__main__":
 	
 	ep = epuck.epuck('/dev/rfcomm0',docal=False)
-	tm1=ep.ReadLineSensors()
 
 	now = datetime.datetime.now()
 	logfilename = "logfile-%s-%s-%s-%s-%s-%s.csv" %\
@@ -138,7 +146,7 @@ if __name__ == "__main__":
 
 # find steady-state methylation for each cell, 5 is the initial guess
 	m = 5
-	current_asp = #????????
+	current_asp, sensor = grey_to_asp()
 	tic = time.time()
 	for x in range (0,400):
 			# time.sleep(0.1)
@@ -149,18 +157,19 @@ if __name__ == "__main__":
 
 # Now, do the chemotaxis
 	t0 = time.time()
-	prev_simtime = t0 - 0.1 # initial time of the controller
+	prev_t = t0 - 0.1 # initial time of the controller
 	tf = t0 + while_time
-	simtime = t0
-	while (simtime<tf):
-			#time.sleep(1)
-			simtime = time.time()
-			delta_t = simtime - prev_simtime
-			m,cheYp,run_or_tumble,asp=chemo(m,delta_t,x%100==0)
+	t = t0
+	while (t<tf):
+			time.sleep(2)
+			t = time.time()
+			runtime = t - tic
+			delta_t = t - prev_t
+			m,cheYp, run_or_tumble, asp, sensor = chemo(m,delta_t,x%100==0)
 			sys.stdout.flush()
-			prev_simtime = simtime
+			prev_t = t
 
-			print >>logfile,'%.3f, %.3f, %.3g, %.2f, %.2f, %.2f, %.2f, %d' % (simtime, delta_t, asp, m, x1, y1, cheYp, run_or_tumble)
+			print >>logfile,'%.3f, %.3f, %.3g, %.2f, %.2f, %.2f, %d' % (runtime, delta_t, asp, sensor, m, cheYp, run_or_tumble)
 
 			#if (x%100==0):
 				#print '\ncycle=',cycle,',',
