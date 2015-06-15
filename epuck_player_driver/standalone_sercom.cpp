@@ -16,8 +16,8 @@ int main (int argc, char *argv[])
   serialPort = new SerialPort(portstr);
   if(serialPort->initialize() == -1)
   {
-    printf("%s",serialPort->getError().c_str());
-    return -1;
+	  	perror("main");
+		return -1;
   }
   //printf("init ok.\n");
 
