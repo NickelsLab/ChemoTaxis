@@ -54,7 +54,7 @@ class epuck:
 			response = self.ser.readline()
 		if not response:
 			print "Warning: timed out"
-		return response
+		return response[:-2]
 
 	# Send a command to the epuck
 	def sendcommand(self,cmd):
@@ -74,7 +74,7 @@ class epuck:
 		# Half of wheel radius [m]
 		self.r_DIV_2 = 0.0103;
 		# Angular displacement of one motor step [rad]
-		self.STEP_ANG_DISP = 6.283185308e-3;
+		self.STEP_ANG_DISP = 6.283185308e-3; # rad/step
 
 		self.ser = serial.Serial(portname,115200,timeout=1)
 
@@ -89,17 +89,47 @@ class epuck:
 		if docal:
 			self.CalProx() 
 
+	# Rotate by a given angle (in radians)
+	def TurnBy(self,angle_to_turn,speed=200):
+		[Lenc,Renc] = self.GetMotorPosition()
+		Lenc_goal = Lenc+int(angle_to_turn/(2*self.r_DIV_L)/self.STEP_ANG_DISP)
+
+		if (angle_to_turn>0) :
+			self.SetSpeedSteps(speed,-speed)
+			while Lenc<Lenc_goal:
+				[Lenc,Renc] = self.GetMotorPosition()
+		else:
+			self.SetSpeedSteps(-speed,speed)
+			while Lenc>Lenc_goal:
+				[Lenc,Renc] = self.GetMotorPosition()
+		self.SetSpeedSteps(0,0)
+
 	# Set the speed of the epuck in steps (left wheel, right wheel)
 	def SetSpeedSteps(self,Rstep,Lstep):
 		# print 'SetSpeedSteps(%d,%d)' % (Rstep,Lstep)
 		self.sendcommand("d,"+str(int(Rstep))+","+str(int(Lstep))+"\n")
 		self.expectresponse("SetSpeedSteps()()",'d')
 
+	# Set the motor position
+	def SetMotorPosition(self,Rstep,Lstep):
+		# print 'SetMotorPosition(%d,%d)' % (Rstep,Lstep)
+		self.sendcommand("p,"+str(int(Rstep))+","+str(int(Lstep))+"\n")
+		self.expectresponse("SetMotorPosition()",'p')
+
+	# Get the motor position
+	def GetMotorPosition(self):
+		# print 'GetMotorPosition()'
+		self.sendcommand("q\n")
+		x = self.expectresponse("GetMotorPosition()",'q')
+		s = x.split(','); # q,lencoder,rencoder
+		return [int(a) for a in s[1:]]
+
+
 	# Set the speed of the epuck in m/s and rad/sec
 	# Taken from the player epuckPosition2d driver by 
 	#    Renato Florentino Garcia <fgar.renato@gmail.com>
 	def SetVel(self,px,pa):
-		# print "SetVel(px=%.3f m/s,pa=%.3f rad/s)" % (px,pa)
+		print "SetVel(px=%.3f m/s,pa=%.3f rad/s)" % (px,pa)
 		
 		#  Angular speed for each wheel [rad/s]
 		angSpeedRw = ( 2*px + self.TRACK*pa )/( self.WHEEL_DIAMETER );
@@ -151,6 +181,41 @@ class epuck:
 		#print "RingLED(%d)" % state
 		self.sendcommand("L,"+str(int(num))+","+str(int(state))+"\n")
 		self.expectresponse("RingLED()",'l')
+
+	# Turn on LED at given angle
+# (per # http://www.cyberbotics.com/dvd/common/doc/webots/guide/section8.1.html,Fig 8.4)
+# LED num angle  
+# 0 0
+# 1 -45
+# 2 -90
+# 3 -140
+# 4 -180/+180
+# 5 +140
+# 6 +90
+# 7 +45
+	def LEDAtAngle(self,angle):
+		if (angle>=-22.5 and angle<22.5):
+			whichled=0
+		elif (angle>=22.5 and angle<67.5):
+			whichled=7
+		elif (angle>=67.5 and angle<115):
+			whichled=6
+		elif (angle>=115 and angle<160):
+			whichled=5
+		elif (angle>=160 and angle<180):
+			whichled=4
+		elif (angle>=-180 and angle<-160):
+			whichled=4
+		elif (angle>=-160 and angle<-115):
+			whichled=3
+		elif (angle>=-115 and angle<-67.5):
+			whichled=2
+		elif (angle>=-67.5 and angle<-22.5):
+			whichled=1
+		else:
+			print "Angle %f not in range??" % angle
+			whichled=-1
+		return whichled
 
 	# Calibrate the IR proximity sensors
 	# Normally, done only once on startup
