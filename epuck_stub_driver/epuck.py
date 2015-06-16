@@ -104,11 +104,6 @@ class epuck:
 				[Lenc,Renc] = self.GetMotorPosition()
 		self.SetSpeedSteps(0,0)
 
-	# Set the speed of the epuck in steps (left wheel, right wheel)
-	def SetSpeedSteps(self,Rstep,Lstep):
-		# print 'SetSpeedSteps(%d,%d)' % (Rstep,Lstep)
-		self.sendcommand("d,"+str(int(Rstep))+","+str(int(Lstep))+"\n")
-		self.expectresponse("SetSpeedSteps()()",'d')
 
 	# Set the motor position
 	def SetMotorPosition(self,Rstep,Lstep):
@@ -124,12 +119,17 @@ class epuck:
 		s = x.split(','); # q,lencoder,rencoder
 		return [int(a) for a in s[1:]]
 
+	# Set the speed of the epuck in steps (left wheel, right wheel)
+	def SetSpeedSteps(self,Rstep,Lstep):
+		# print 'SetSpeedSteps(%d,%d)' % (Rstep,Lstep)
+		self.sendcommand("d,"+str(int(Rstep))+","+str(int(Lstep))+"\n")
+		self.expectresponse("SetSpeedSteps()()",'d')
 
 	# Set the speed of the epuck in m/s and rad/sec
 	# Taken from the player epuckPosition2d driver by 
 	#    Renato Florentino Garcia <fgar.renato@gmail.com>
 	def SetVel(self,px,pa):
-		print "SetVel(px=%.3f m/s,pa=%.3f rad/s)" % (px,pa)
+		# print "SetVel(px=%.3f m/s,pa=%.3f rad/s)" % (px,pa)
 		
 		#  Angular speed for each wheel [rad/s]
 		angSpeedRw = ( 2*px + self.TRACK*pa )/( self.WHEEL_DIAMETER );
@@ -253,7 +253,8 @@ class epuck:
 		#print "Pocessed IR readings: ", 
 		#print ["%0.2f" % i for i in ranges],
 		#print  "(m)"
-		return ranges
+		# return ranges
+		return reading
 
 	# Play cute sounds over speaker
 	def PlaySound(self,sound=1): # sounds 1-5
