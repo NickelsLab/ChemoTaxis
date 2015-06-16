@@ -23,17 +23,12 @@ import sys, os
 sys.path.append('/usr/local/lib/python2.7/site-packages/')
 sys.path.append('/usr/local/lib64/python2.7/site-packages/')
 
-def grey_to_asp():
-	lcr=ep.ReadLineSensors()
-	if len(lcr)<2:
-		centersensor=950 # if an error occurs in the sensor reading, this value will likely make the robot tumble
-	else:
-		centersensor=lcr[1] # reads middle sensor only
+def grey_to_asp(sensor):
 	sensfactA=0.000075
 	sensfactB=-0.01
-	sensfactC=1000
-	asp=sensfactA*math.exp(sensfactB*(centersensor-sensfactC))
-	return asp, centersensor
+	sensfactC=-1000
+	asp=sensfactA*math.exp(sensfactB*(sensor+sensfactC))
+	return asp
 
 def eps_val(m):
 	eps = [1.0, 0.5, 0.0, -0.3, -0.6, -0.85, -1.1, -2.0, -3.0]
@@ -96,37 +91,40 @@ def rapidcell(S, m, dt):
 	return m,mb,cheYp
 
 # Run for one time step
-def run(dt):
-	speed = 0.02 # actual units for robot
+def run():
+	speed = 0.08 # actual units for robot
 	ep.SetVel(speed, 0)
+	time.sleep(0.25)
 
 # tumble one time step
-def tumble(dt):
+def tumble():
 	deg_to_tumble = random.randrange(-179,180)
 	rad_to_tumble = deg_to_tumble*math.pi/180.0
-	speed_to_tumble = rad_to_tumble/dt
+	max_tumble=4.0
+	if deg_to_tumble>0:
+		speed_to_tumble = max_tumble
+	else:
+		speed_to_tumble = -max_tumble
 	ep.SetVel(0,speed_to_tumble)
+	time.sleep(rad_to_tumble/speed_to_tumble)
 
-def chemo(m,dt,dbg):
-	current_asp, sensor = grey_to_asp()
+def chemo(m,dt,sensor):
+	current_asp = grey_to_asp(sensor)
 	#print 'current_asp, ', current_asp,', ',
 	m,mb,cheYp = rapidcell(current_asp, m,dt)
-	#if (dbg):
-		#print '\nasp,%.3g, ' % current_asp
-		#print 'mb = %.3g, ' % mb
 	if random.random() <  mb:
-		run(dt) # run one time step
+		run() # run one time step
 		#sys.stdout.write('r')
 		#sys.stdout.flush()
 		run_or_tumble = 1
 	else:
-		tumble(dt) # for dt
+		tumble() # for dt
 		#sys.stdout.write('t')
 		#sys.stdout.flush()
 		run_or_tumble = 0
 
 	t=time.time()
-	return m,cheYp,run_or_tumble,current_asp,sensor
+	return m,cheYp,run_or_tumble,current_asp
 		
 # ---------------------------------------------------
 # Main program
@@ -146,7 +144,10 @@ if __name__ == "__main__":
 
 # find steady-state methylation for each cell, 5 is the initial guess
 	m = 5
-	current_asp, sensor = grey_to_asp()
+	lcr=ep.ReadLineSensors()
+	if len(lcr)>2:	# if an error in the reading occurs, use previous reading
+		sensor=lcr[1] # reads middle sensor only
+	current_asp = grey_to_asp(sensor)
 	tic = time.time()
 	for x in range (0,400):
 			# time.sleep(0.1)
@@ -161,11 +162,14 @@ if __name__ == "__main__":
 	tf = t0 + while_time
 	t = t0
 	while (t<tf):
-			time.sleep(2)
+			#time.sleep(2)
 			t = time.time()
 			runtime = t - tic
 			delta_t = t - prev_t
-			m,cheYp, run_or_tumble, asp, sensor = chemo(m,delta_t,x%100==0)
+			lcr=ep.ReadLineSensors()
+			if len(lcr)>2:	# if an error in the reading occurs, use previous reading
+				sensor=lcr[1] # reads middle sensor only
+			m,cheYp, run_or_tumble, asp = chemo(m,delta_t,sensor)
 			sys.stdout.flush()
 			prev_t = t
 
@@ -180,3 +184,5 @@ if __name__ == "__main__":
 	toc = time.time()
 	print 'total elapsed time = %.2f s = %.2f min' % (toc-tic, (toc-tic)/60)
 	raw_input("press enter to continue")
+
+
