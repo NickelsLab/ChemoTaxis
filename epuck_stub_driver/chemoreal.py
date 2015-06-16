@@ -24,8 +24,8 @@ sys.path.append('/usr/local/lib/python2.7/site-packages/')
 sys.path.append('/usr/local/lib64/python2.7/site-packages/')
 
 def grey_to_asp(sensor):
-	sensfactA=0.000075
-	sensfactB=-0.01
+	sensfactA=0.0002
+	sensfactB=-0.008
 	sensfactC=-1000
 	asp=sensfactA*math.exp(sensfactB*(sensor+sensfactC))
 	return asp
