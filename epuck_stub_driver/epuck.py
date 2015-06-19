@@ -91,7 +91,7 @@ class epuck:
 
 	# Rotate by a given angle (in radians)
 	def TurnBy(self,angle_to_turn,speed=200):
-		if (angle_to_turn < math.pi or angle_to_turn < -math.pi):
+		if (angle_to_turn > math.pi or angle_to_turn < -math.pi):
 			print "Warning: ATT=%f, trimming" % angle_to_turn
 		# Ensure -pi <= ATT <= +pi
 		while (angle_to_turn > math.pi):

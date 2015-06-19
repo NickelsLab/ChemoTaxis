@@ -65,9 +65,9 @@ def sens_vectors(left,lmid,rmid,right):
 	if sumang >= math.pi or sumang <= -math.pi:
 		sumang = math.pi # prevents large angles from getting entered to TurnBy()
 	if sumang > 0:
-		turnang = -sumang+math.pi
+		turnang = sumang - math.pi
 	else:
-		turnang = -sumang-math.pi
+		turnang = sumang + math.pi
 	return turnang
 
 # the next section contains greyscale reading functions
