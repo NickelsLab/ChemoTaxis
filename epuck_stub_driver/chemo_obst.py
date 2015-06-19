@@ -23,12 +23,72 @@ import sys, os
 sys.path.append('/usr/local/lib/python2.7/site-packages/')
 sys.path.append('/usr/local/lib64/python2.7/site-packages/')
 
-def grey_to_asp(sensor):
-	sensfactA=0.0002
-	sensfactB=-0.008
-	sensfactC=-1000
-	asp=sensfactA*math.exp(sensfactB*(sensor+sensfactC))
+# the following section contains obstacle detection functions
+
+def obst_detect(): # uses vector sum of obstacles in front of epuck, computes angle to turn away
+	mag_thresh = 100.0
+	left,lmid,rmid,right = eye_read()
+	turnang = sens_vectors(left,lmid,rmid,right)
+
+	# loop keeps spinning robot until no obstacles are in the way
+	while left > mag_thresh or lmid > mag_thresh or rmid > mag_thresh or right > mag_thresh: 
+		ep.RingLED(0,1)
+		ep.RingLED(1,1)
+		ep.RingLED(7,1)
+		ep.TurnBy(turnang,speed=800)
+		left,lmid,rmid,right = eye_read()
+		turnang = sens_vectors(0,lmid,rmid,0)
+		
+
+def eye_read(): # what to do if the obstacle sensors fail to read properly
+	obst = ep.ReadProx()
+	if len(obst)<2: # ignores obstacles if the sensors encounter some read error
+		left = 0
+		lmid = 0
+		rmid = 0
+		right = 0
+	else:
+		left = obst[6]
+		lmid = obst[7]
+		rmid = obst[0]
+		right = obst[1]
+	return left,lmid,rmid,right
+
+def sens_vectors(left,lmid,rmid,right):
+	innerang = 15.0*math.pi/180.0 # angle of inner sensors in radians
+	outerang = 45.0*math.pi/180.0 # angle of outer sensors in radians
+
+	xsum = left*math.cos(outerang)+lmid*math.cos(innerang)+rmid*math.cos(-innerang)+right*math.cos(-outerang)
+	ysum = left*math.sin(outerang)+lmid*math.sin(innerang)+rmid*math.sin(-innerang)+right*math.sin(-outerang)
+
+	sumang = math.atan2(ysum,xsum)
+	if sumang >= math.pi or sumang <= -math.pi:
+		sumang = math.pi # prevents large angles from getting entered to TurnBy()
+	if sumang > 0:
+		turnang = -sumang+math.pi
+	else:
+		turnang = -sumang-math.pi
+	return turnang
+
+# the next section contains greyscale reading functions
+
+def grey_to_asp(sensor): # function converts sensor reading to a pseudoconcentration of aspartame
+	sensfactA = 0.0002 # this function is very much a WIP
+	sensfactB = -0.008
+	sensfactC = -1000
+	asp = sensfactA*math.exp(sensfactB*(sensor+sensfactC))
 	return asp
+
+def grey_read(prev_sensor):
+	lcr = ep.ReadLineSensors()
+	if len(lcr)>2:	# if an error in the reading occurs, use previous reading
+		sensor = lcr[1] # reads middle sensor only
+	else:
+		sensor = prev_sensor
+	prev_sensor = sensor
+	return sensor, prev_sensor
+
+# below are chemotaxis functions
 
 def eps_val(m):
 	eps = [1.0, 0.5, 0.0, -0.3, -0.6, -0.85, -1.1, -2.0, -3.0]
@@ -66,21 +126,21 @@ def rapidcell(S, m, dt):
 	b = 0.0714
 	cheYt = 9.7
 
-#After Eq(7) pg. 3, Eq 8, p. 4
+# After Eq(7) pg. 3, Eq 8, p. 4
 	K_y = 100.0
 	K_z = 30.0
 	G_y = 0.1
 	K_s = 0.45
-#Receptor free energy
+# Receptor free energy
 	f = n*(eps_val(m) + math.log((1+S/K_off)/(1+S/K_on))) +\
 	   ns*(eps_val(m) + math.log((1+S/Ks_off)/(1+S/Ks_on)))
 	
-#Cluster activity (Table 2, p.4)
+# Cluster activity (Table 2, p.4)
 	#print 'f, ', f,', '
 	A = 1/(1+math.exp(f))
 	#print 'a, ', A,','
 
-#Rate of receptor methylation (Table 2, p.4)
+# Rate of receptor methylation (Table 2, p.4)
 	m = m+dm(cheR, cheB, a, b, A)*dt
 	#print 'm, ', m,', ',
 	cheYp = 3*(K_y*K_s*A)/(K_y*K_s*A + K_z + G_y)
@@ -90,14 +150,26 @@ def rapidcell(S, m, dt):
 
 	return m,mb,cheYp
 
-# Run for one time step
+# run and/or obstacle detect
 def run():
+	obst_detect()
+	ep.RingLED(0,1)
+	ep.RingLED(1,0)
+	ep.RingLED(7,0)
 	speed = 0.08 # actual units for robot
 	ep.SetVel(speed, 0)
-	time.sleep(0.25)
 
-# tumble one time step
+	runstart = time.time()
+	t = 0
+	while t <= 0.25: # run for 0.25 second or until obstacles are detected
+		t = time.time()-runstart
+		obst_detect() # obstacle detection interrupts run
+
+# tumble for to a random orientation
 def tumble():
+	ep.RingLED(0,0)
+	ep.RingLED(1,0)
+	ep.RingLED(7,0)
 	deg_to_tumble = random.randrange(-179,180)
 	rad_to_tumble = deg_to_tumble*math.pi/180.0
 	max_tumble=4.0
@@ -144,12 +216,11 @@ if __name__ == "__main__":
 
 # find steady-state methylation for each cell, 5 is the initial guess
 	m = 5
-	lcr=ep.ReadLineSensors()
-	if len(lcr)>2:	# if an error in the reading occurs, use previous reading
-		sensor=lcr[1] # reads middle sensor only
+	prev_sensor = 1000
+	sensor, prev_sensor = grey_read(prev_sensor)
 	current_asp = grey_to_asp(sensor)
 	tic = time.time()
-	for x in range (0,400):
+	for x in range (0,800):
 			# time.sleep(0.1)
 			m,mb,cheYp = rapidcell(current_asp, m,delta_t)
 	# print 'm after ss %.3f, ' % m,
@@ -166,20 +237,15 @@ if __name__ == "__main__":
 			t = time.time()
 			runtime = t - tic
 			delta_t = t - prev_t
-			lcr=ep.ReadLineSensors()
-			if len(lcr)>2:	# if an error in the reading occurs, use previous reading
-				sensor=lcr[1] # reads middle sensor only
+			sensor, prev_sensor = grey_read(prev_sensor)
 			m,cheYp, run_or_tumble, asp = chemo(m,delta_t,sensor)
 			sys.stdout.flush()
-			prev_t = t
 
 			print >>logfile,'%.3f, %.3f, %.3g, %.2f, %.2f, %.2f, %d' % (runtime, delta_t, asp, sensor, m, cheYp, run_or_tumble)
-
-			#if (x%100==0):
-				#print '\ncycle=',cycle,',',
-				#print  'm=%.2f, ' % m,
+			prev_t = t
 			
 	ep.SetVel(0.0,0.0) # stop the robot at the end
+	ep.RingLED(0,0); # turn off forward led
 	del ep
 	toc = time.time()
 	print 'total elapsed time = %.2f s = %.2f min' % (toc-tic, (toc-tic)/60)
