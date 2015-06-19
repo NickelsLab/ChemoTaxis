@@ -31,14 +31,14 @@ def obst_detect(): # uses vector sum of obstacles in front of epuck, computes an
 	turnang = sens_vectors(left,lmid,rmid,right)
 
 	# loop keeps spinning robot until no obstacles are in the way
-	while left > mag_thresh or lmid > mag_thresh or rmid > mag_thresh or right > mag_thresh: 
+	while left > mag_thresh or lmid > mag_thresh or rmid > mag_thresh or right > mag_thresh:
+		print left,",",lmid,",",rmid,",",right,",",turnang 
 		ep.RingLED(0,1)
 		ep.RingLED(1,1)
 		ep.RingLED(7,1)
 		ep.TurnBy(turnang,speed=800)
 		left,lmid,rmid,right = eye_read()
-		turnang = sens_vectors(0,lmid,rmid,0)
-		
+		turnang = sens_vectors(left,lmid,rmid,right)
 
 def eye_read(): # what to do if the obstacle sensors fail to read properly
 	obst = ep.ReadProx()
@@ -57,9 +57,24 @@ def eye_read(): # what to do if the obstacle sensors fail to read properly
 def sens_vectors(left,lmid,rmid,right):
 	innerang = 15.0*math.pi/180.0 # angle of inner sensors in radians
 	outerang = 45.0*math.pi/180.0 # angle of outer sensors in radians
-
-	xsum = left*math.cos(outerang)+lmid*math.cos(innerang)+rmid*math.cos(-innerang)+right*math.cos(-outerang)
-	ysum = left*math.sin(outerang)+lmid*math.sin(innerang)+rmid*math.sin(-innerang)+right*math.sin(-outerang)
+	if left > 100:
+		v1 = 1
+	else:
+		v1 = 0
+	if lmid > 100:
+		v2 = 1
+	else:
+		v2 = 0
+	if rmid > 100:
+		v3 = 1
+	else:
+		v3 = 0
+	if right > 100:
+		v4 = 1
+	else:
+		v4 = 0
+	xsum = v1*math.cos(outerang)+v2*math.cos(innerang)+v3*math.cos(-innerang)+v4*math.cos(-outerang)
+	ysum = v1*math.sin(outerang)+v2*math.sin(innerang)+v3*math.sin(-innerang)+v4*math.sin(-outerang)
 
 	sumang = math.atan2(ysum,xsum)
 	if sumang >= math.pi or sumang <= -math.pi:

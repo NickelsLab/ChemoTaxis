@@ -99,10 +99,13 @@ class epuck:
 		while (angle_to_turn < -math.pi):
 			angle_to_turn = angle_to_turn + 2*math.pi
 
+		self.SetMotorPosition(0,0) # reset encoders to 0 first
+
+
 		[Lenc,Renc] = self.GetMotorPosition()
 		Lenc_goal = Lenc-int(angle_to_turn/(2*self.r_DIV_L)/self.STEP_ANG_DISP)
 
-
+		# print "Lgoal=%d,Lenc=%d" % (Lenc_goal,Lenc)
 		if (angle_to_turn>0) :
 			self.SetSpeedSteps(-speed,speed)
 			while Lenc>Lenc_goal:
