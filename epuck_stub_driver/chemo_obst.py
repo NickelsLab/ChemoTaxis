@@ -32,7 +32,8 @@ def obst_detect(): # uses vector sum of obstacles in front of epuck, computes an
 
 	# loop keeps spinning robot until no obstacles are in the way
 	while left > mag_thresh or lmid > mag_thresh or rmid > mag_thresh or right > mag_thresh:
-		print left,",",lmid,",",rmid,",",right,",",turnang 
+		ep.SetVel(0.0,0.0)
+		# print left,",",lmid,",",rmid,",",right,",",turnang 
 		ep.RingLED(0,1)
 		ep.RingLED(1,1)
 		ep.RingLED(7,1)
