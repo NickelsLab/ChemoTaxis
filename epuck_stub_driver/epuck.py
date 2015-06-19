@@ -91,19 +91,27 @@ class epuck:
 
 	# Rotate by a given angle (in radians)
 	def TurnBy(self,angle_to_turn,speed=200):
+		if (angle_to_turn < math.pi or angle_to_turn < -math.pi):
+			print "Warning: ATT=%f, trimming" % angle_to_turn
+		# Ensure -pi <= ATT <= +pi
+		while (angle_to_turn > math.pi):
+			angle_to_turn = angle_to_turn - 2*math.pi
+		while (angle_to_turn < -math.pi):
+			angle_to_turn = angle_to_turn + 2*math.pi
+
 		[Lenc,Renc] = self.GetMotorPosition()
-		Lenc_goal = Lenc+int(angle_to_turn/(2*self.r_DIV_L)/self.STEP_ANG_DISP)
+		Lenc_goal = Lenc-int(angle_to_turn/(2*self.r_DIV_L)/self.STEP_ANG_DISP)
+
 
 		if (angle_to_turn>0) :
-			self.SetSpeedSteps(speed,-speed)
-			while Lenc<Lenc_goal:
-				[Lenc,Renc] = self.GetMotorPosition()
-		else:
 			self.SetSpeedSteps(-speed,speed)
 			while Lenc>Lenc_goal:
 				[Lenc,Renc] = self.GetMotorPosition()
+		else:
+			self.SetSpeedSteps(speed,-speed)
+			while Lenc<Lenc_goal:
+				[Lenc,Renc] = self.GetMotorPosition()
 		self.SetSpeedSteps(0,0)
-
 
 	# Set the motor position
 	def SetMotorPosition(self,Rstep,Lstep):
