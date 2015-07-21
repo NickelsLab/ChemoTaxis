@@ -23,8 +23,8 @@ import sys, os
 sys.path.append('/usr/local/lib/python2.7/site-packages/')
 sys.path.append('/usr/local/lib64/python2.7/site-packages/')
 
-def grey_to_asp(sensor):
-	sensfactA=0.0002
+def grey_to_asp(sensor): # function converts sensor reading to a pseudoconcentration of aspartame
+	sensfactA=0.0002 # this function is very much a WIP
 	sensfactB=-0.008
 	sensfactC=-1000
 	asp=sensfactA*math.exp(sensfactB*(sensor+sensfactC))
@@ -92,12 +92,14 @@ def rapidcell(S, m, dt):
 
 # Run for one time step
 def run():
+	ep.RingLED(0,1);
 	speed = 0.08 # actual units for robot
 	ep.SetVel(speed, 0)
 	time.sleep(0.25)
 
 # tumble one time step
 def tumble():
+	ep.RingLED(0,0);
 	deg_to_tumble = random.randrange(-179,180)
 	rad_to_tumble = deg_to_tumble*math.pi/180.0
 	max_tumble=4.0
@@ -171,15 +173,15 @@ if __name__ == "__main__":
 				sensor=lcr[1] # reads middle sensor only
 			m,cheYp, run_or_tumble, asp = chemo(m,delta_t,sensor)
 			sys.stdout.flush()
-			prev_t = t
 
 			print >>logfile,'%.3f, %.3f, %.3g, %.2f, %.2f, %.2f, %d' % (runtime, delta_t, asp, sensor, m, cheYp, run_or_tumble)
-
+			prev_t = t
 			#if (x%100==0):
 				#print '\ncycle=',cycle,',',
 				#print  'm=%.2f, ' % m,
 			
 	ep.SetVel(0.0,0.0) # stop the robot at the end
+	ep.RingLED(0,0); # turn off forward led
 	del ep
 	toc = time.time()
 	print 'total elapsed time = %.2f s = %.2f min' % (toc-tic, (toc-tic)/60)

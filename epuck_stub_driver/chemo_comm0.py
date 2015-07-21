@@ -37,7 +37,12 @@ def obst_detect(): # detects obstacles, overrides to tumble if detected
 
 def eye_read(): # what to do if the obstacle sensors fail to read properly
 	obst = ep.ReadProx()
-	if len(obst)<2: # always detects obstacles if the sensors encounter some read error
+	if obst is None:
+		left = 101
+		lmid = 101
+		rmid = 101
+		right = 101
+	elif len(obst)<7: # always detects obstacles if the sensors encounter some read error
 		left = 101
 		lmid = 101
 		rmid = 101
@@ -53,14 +58,14 @@ def eye_read(): # what to do if the obstacle sensors fail to read properly
 
 def grey_to_asp(sensor): # function converts sensor reading to a pseudoconcentration of aspartame
 	sensfactA = 0.0002 # this function is very much a WIP
-	sensfactB = -0.008
+	sensfactB = -0.013
 	sensfactC = -1000
 	asp = sensfactA*math.exp(sensfactB*(sensor+sensfactC))
 	return asp
 
 def grey_read(prev_sensor):
 	lcr = ep.ReadLineSensors()
-	if len(lcr)>2:	# if an error in the reading occurs, use previous reading
+	if len(lcr)>2 and lcr[1]>100 and lcr[1]<1000:	# if an error in the reading occurs, use previous reading
 		sensor = lcr[1] # reads middle sensor only
 	else:
 		sensor = prev_sensor
@@ -140,7 +145,7 @@ def run():
 
 	runstart = time.time()
 	t = 0
-	while t <= 0.25: # run for 0.25 seconds or until obstacles are detected
+	while t <= 0.2: # run for 0.2 seconds or until obstacles are detected
 		t = time.time()-runstart
 		obst = obst_detect() # obstacle detection interrupts run
 
@@ -205,7 +210,10 @@ if __name__ == "__main__":
 	logfile = open(logfilename,'w+')
 
 	while_time = 400
-	delta_t = 0.1 #%time-step		
+	delta_t = 0.1 #%time-step
+	ep.RingLED(0,0)
+	ep.RingLED(1,0)
+	ep.RingLED(7,0)		
 
 # find steady-state methylation for each cell, 5 is the initial guess
 	m = 5
