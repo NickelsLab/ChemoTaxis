@@ -1,0 +1,21 @@
+include "ecoli.inc"
+
+resolution 1 # the size of a pixel in Stage's (in meters/microns) underlying raytrace model
+
+interval_sim 1 # milliseconds per update step
+
+window
+(
+size [700 700] # window size in pixels
+scale 3 # initial scale
+)
+
+ecoli
+(
+name "ecoli"
+# pose [-23.640 28.360 0.000 80.000]
+pose [-73.640 28.360 0.000 80.000] # Nguyen uses this?
+# pose [-160.000 0 0 90.000] # for testing a changing initial position
+# pose [0 0 0 0]
+)
+
