@@ -1,0 +1,23 @@
+% to test kinect - glview - but then the kinect_mex doesn't work till a reboot
+% (!?!)
+
+source /opt/ros/indigo/setup.bash
+run roscore
+
+go to kinect_mex
+run matlab
+run findLoc (repeat till you get a window/feed)
+
+source chemo_robot_ws/devel/setup.bash
+cd chemo_robot_ws
+catkin_make 
+
+% for turtlesim 
+rosrun turtlesim turtlesim_node
+rosrun turtle modeChooser
+rosrun turtle turtleController
+
+% for zumo
+(ssh pi1 ; rosrun rosserial_python serial_node.py /dev/ttyACM0)
+rosrun zumo zumo_modeChooser
+rosrun zumo zumoController
