@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<!-- Created using Computer Vision System Toolbox(tm) for MATLAB(R) -->
+<!-- Version 9.0.0.341360 (R2016a) -->
+<!-- Compatible with OpenCV 2.4 -->
+<cascade>
+  <stageType>BOOST</stageType>
+  <featureType>HOG</featureType>
+  <height>32</height>
+  <width>43</width>
+  <stageParams>
+    <boostType>GAB</boostType>
+    <minHitRate>9.9500000476837158e-01</minHitRate>
+    <maxFalseAlarm>1.0000000149011612e-01</maxFalseAlarm>
+    <weightTrimRate>9.4999999999999996e-01</weightTrimRate>
+    <maxDepth>1</maxDepth>
+    <maxWeakCount>100</maxWeakCount></stageParams>
+  <featureParams>
+    <maxCatCount>0</maxCatCount>
+    <featSize>36</featSize></featureParams>
+  <stageNum>1</stageNum>
+  <stages>
+    <!-- stage 0 -->
+    <_>
+      <maxWeakCount>3</maxWeakCount>
+      <stageThreshold>-9.9034625291824341e-01</stageThreshold>
+      <weakClassifiers>
+        <_>
+          <internalNodes>
+            0 -1 0 7.6786845922470093e-02</internalNodes>
+          <leafValues>
+            -9.3301433324813843e-01 7.2881358861923218e-01</leafValues></_>
+        <_>
+          <internalNodes>
+            0 -1 2 5.6540068238973618e-02</internalNodes>
+          <leafValues>
+            -9.5980739593505859e-01 5.5696588754653931e-01</leafValues></_>
+        <_>
+          <internalNodes>
+            0 -1 1 4.9790412187576294e-02</internalNodes>
+          <leafValues>
+            -7.5935238599777222e-01 8.5727357864379883e-01</leafValues></_></weakClassifiers></_></stages>
+  <features>
+    <_>
+      <rect>
+        12 0 8 8 3</rect></_>
+    <_>
+      <rect>
+        24 12 8 8 16</rect></_>
+    <_>
+      <rect>
+        4 16 16 8 30</rect></_></features></cascade>
+</opencv_storage>

@@ -1,0 +1,15 @@
+Script started on Thu 21 Jul 2016 11:59:17 AM CDT
+smahapat@ros2:~/chemo_robot_ws$ rostopic  echo /cmd_vel
+^[[A^[[B        ^Csmahapat@ros2:~/chemo_robot_ws$ rostoic [K[K[K[K[K[K[K[K^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ ^C
+smahapat@ros2:~/chemo_robot_ws$ exit
+
+Script done on Thu 21 Jul 2016 12:05:28 PM CDT

@@ -1,0 +1,32 @@
+Training Images in Matlab.
+
+//Take pictures with the takePicure.m matlab file.
+//Note that pictures update after you press enter.
+//So the the current picture will be visually updated when you
+have taken the next picture. 
+
+1.) Calibrate camera. 
+	a. make sure that you have 10-15 images of the checkerboard.
+	b. Go into matlab's camera calibrator app.
+	c. Load images in the app, and press calibrate.
+	d. export camera parameters (should be a button next to calibrate)
+	e. save the cameraparams as a .mat file in the directory that you are working under.
+
+2.) Train the image detector and output a .xml file
+	a. Make two folders (Positive images, Negative images) (100 positive images) (25 negative ImageCount)
+	b. Fill the folders with images of the object and images without the object.
+	c. Open the Training Image Labeler from matlab
+	d. Go through and label all Regions of Interest with the bounding box tool.
+	e. save as a labelingSession.mat file
+	f. Run TrainZumo.m
+	g. One of the .xml files is the best fit for the particular training session. 
+3. run findLoc.m
+4. Enter URI code of ROSCORE master ex: 'http://ros2:11311/'
+
+
+Comments:
+
+Repeatedly I got black screens. For some reason if you restart the computer kinect_mex resumes working.
+
+Also findLoc assumes only one identifying bounding box is found. 
+

@@ -1,0 +1,5 @@
+Script started on Thu 21 Jul 2016 11:48:30 AM CDT
+smahapat@ros2:~/chemo_robot_ws$ rostopic  echo /cme[Kd_vel
+^Csmahapat@ros2:~/chemo_robot_ws$ exit
+
+Script done on Thu 21 Jul 2016 11:59:10 AM CDT

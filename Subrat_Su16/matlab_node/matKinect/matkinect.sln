@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matkinect", "matkinect\matkinect.vcproj", "{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imaqadaptorkit_vc8", "..\..\..\..\Program Files\MATLAB\R2010b\toolbox\imaq\imaqadaptors\kit\imaqadaptorkit_vc8.vcproj", "{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}.Debug|Win32.ActiveCfg = Release|Win32
+		{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}.Debug|Win32.Build.0 = Release|Win32
+		{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}.Debug|x64.ActiveCfg = Debug|Win32
+		{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}.Release|Win32.ActiveCfg = Release|Win32
+		{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}.Release|Win32.Build.0 = Release|Win32
+		{B05FD86E-0CA0-49DA-B9B0-0BD88770EFD6}.Release|x64.ActiveCfg = Release|Win32
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Debug|Win32.Build.0 = Debug|Win32
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Debug|x64.ActiveCfg = Debug|x64
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Debug|x64.Build.0 = Debug|x64
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Release|Win32.ActiveCfg = Debug|x64
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Release|x64.ActiveCfg = Debug|x64
+		{6F2A2B76-FB92-4738-9F6E-D34382BEE7D9}.Release|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

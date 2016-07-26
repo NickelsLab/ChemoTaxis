@@ -1,0 +1,37 @@
+Protocol for Training Objects with Matlab.
+
+
+1. go into /usr/local/MATLAB/R2016a/toolbox/vision/visiondata/examples and store a
+	folder for the positive images, one for the negative images.
+
+2. Open Matlab in that directory, and then go over to app control and search for the
+image acqusitions button.
+
+3. Add the images from the positive directory, and then manually go in and define Regions of interests. 
+
+4. Then you export it, (it should export as a .mat file)
+
+
+Code: 
+
+
+
+load('ZumoPositives.mat')
+imDir = fullfile(matlabroot, 'toolbox', 'vision', 'visiondata', 'zumoSignImages');
+addpath(imDir);
+negativeFolder = fullfile(matlabroot, 'toolbox', 'vision', 'visiondata', 'nonZumoSign');
+trainCascadeObjectDetector('zumoSignDetector2.xml',zumoData,negativeFolder,'FalseAlarmRate',0.1,'NumCascadeStages',5);
+detector = vision.CascadeObjectDetector('zumoSignDetector2.xml');
+img = imread('zumoTest.jpeg');
+bbox = step(detector,img);
+detectedImg = insertObjectAnnotation(img,'rectangle',bbox,'stop sign');
+figure(2);
+imshow(detectedImg);
+
+
+
+Important Information:
+
+http://www.mathworks.com/help/vision/ug/train-a-cascade-object-detector.html
+
+
